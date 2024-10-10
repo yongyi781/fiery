@@ -236,7 +236,9 @@
             {#each oeisEntries as r, i}
               <Table.Row
                 class={cn("select-none", selected?.number === r.number ? "bg-muted hover:bg-muted" : "")}
-                onmousedown={() => (selected = r)}
+                onmousedown={() => {
+                  if (selected?.number !== r.number) selected = r
+                }}
               >
                 <Table.Cell class="text-center font-mono">{i + 1}</Table.Cell>
                 <Table.Cell class="text-center font-mono"

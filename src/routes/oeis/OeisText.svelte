@@ -88,45 +88,58 @@
   }
 
   let { text }: Props = $props()
-  let tokens = $derived(text.split(splitRegex).filter((s) => s.length > 0))
+  let rendered = $state(false)
+  let tokens: string[] = $state([text])
+  $effect(() => {
+    if (text) {
+      rendered = false
+      setTimeout(() => {
+        tokens = text.split(splitRegex).filter((s) => s.length > 0)
+        rendered = true
+      }, 0)
+    }
+  })
 </script>
 
-<div class="whitespace-pre-wrap">
-  {#each tokens as token}
-    {#if token.match(exactRegexes.anumber)}
-      <OeisLink anumber={token} />
-    {:else if token.match(exactRegexes.author)}
-      {#if token.startsWith(" ")}&nbsp;{/if}<a
-        href="https://oeis.org/wiki/User:{extractAuthor(token).replaceAll(' ', '_')}"
-        target="_blank">{extractAuthor(token)}</a
-      >
-    {:else if token.match(exactRegexes.exponent)}
-      <span class="text-[0]">^</span><sup>{token.substring(1)}</sup>
-    {:else if token.match(exactRegexes.subscript)}
-      <span class="text-[0]">_</span><sub>{token.substring(1)}</sub>
-    {:else if token.match(exactRegexes.sqrt)}
-      <span class="-mr-1 text-xl font-thin">√</span><span class="overline">{token.substring(5, token.length - 1)}</span>
-    {:else if token.match(exactRegexes.operator)}
-      <span class={operatorColors[token]}>{token}</span>
-    {:else if token.match(exactRegexes.summation)}
-      <span class={"relative top-0.5 text-2xl " + operatorColors["*"]}>&Sigma;</span><sub class="top-1"
-        >{token.substring(5, token.length - 1)}</sub
-      >
-    {:else if token.match(exactRegexes.product)}
-      <span class={"text-2xl " + operatorColors["^"]}>&Product;</span><sub class="top-1"
-        >{token.substring(9, token.length - 1)}</sub
-      >
-    {:else if token.match(exactRegexes.integral)}
-      <span class={"text-2xl " + operatorColors["*"]}>&Integral;</span><sub class="top-1"
-        >{token.substring(10, token.length - 1)}</sub
-      >
-    {:else if token in mathReplacements}
-      {mathReplacements[token]}
-    {:else}
-      {token}
-    {/if}
-  {/each}
-</div>
-<!-- <div class="whitespace-pre-wrap">
-  {tokens}
-</div> -->
+{#if !rendered}
+  <div>{text}</div>
+{:else}
+  <div>
+    {#each tokens as token}
+      {#if token.match(exactRegexes.anumber)}
+        <OeisLink anumber={token} />
+      {:else if token.match(exactRegexes.author)}
+        {#if token.startsWith(" ")}&nbsp;{/if}<a
+          href="https://oeis.org/wiki/User:{extractAuthor(token).replaceAll(' ', '_')}"
+          target="_blank">{extractAuthor(token)}</a
+        >
+      {:else if token.match(exactRegexes.exponent)}
+        <span class="text-[0]">^</span><sup>{token.substring(1)}</sup>
+      {:else if token.match(exactRegexes.subscript)}
+        <span class="text-[0]">_</span><sub>{token.substring(1)}</sub>
+      {:else if token.match(exactRegexes.sqrt)}
+        <span class="-mr-1 text-xl font-thin">√</span><span class="overline"
+          >{token.substring(5, token.length - 1)}</span
+        >
+      {:else if token.match(exactRegexes.operator)}
+        <span class={operatorColors[token]}>{token}</span>
+      {:else if token.match(exactRegexes.summation)}
+        <span class={"relative top-0.5 text-2xl " + operatorColors["*"]}>&Sigma;</span><sub class="top-1"
+          >{token.substring(5, token.length - 1)}</sub
+        >
+      {:else if token.match(exactRegexes.product)}
+        <span class={"text-2xl " + operatorColors["^"]}>&Product;</span><sub class="top-1"
+          >{token.substring(9, token.length - 1)}</sub
+        >
+      {:else if token.match(exactRegexes.integral)}
+        <span class={"text-2xl " + operatorColors["*"]}>&Integral;</span><sub class="top-1"
+          >{token.substring(10, token.length - 1)}</sub
+        >
+      {:else if token in mathReplacements}
+        {mathReplacements[token]}
+      {:else}
+        {token}
+      {/if}
+    {/each}
+  </div>
+{/if}
