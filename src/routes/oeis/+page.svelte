@@ -319,10 +319,10 @@
             <div>
               <h3 class="mt-3 text-xl font-bold">Formulas ({selected.formula.length})</h3>
               <ol
-                class="ml-10 list-decimal space-y-2 whitespace-pre-wrap -indent-4 font-mono text-sm marker:text-gray-400"
+                class="ml-10 list-decimal space-y-2 whitespace-pre-wrap font-mono text-sm marker:text-gray-400"
               >
                 {#each selected.formula as formula}
-                  <li class="pl-4"><OeisText text={formula} /></li>
+                  <li><OeisText text={formula} /></li>
                 {/each}
               </ol>
             </div>
