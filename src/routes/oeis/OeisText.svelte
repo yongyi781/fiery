@@ -12,8 +12,8 @@
   $effect(() => {
     if (text) {
       rendered = false
-      setTimeout(() => {
-        tokens = tokenize(text)
+      setTimeout(async () => {
+        tokens = await tokenize(text)
         rendered = true
       }, 0)
     }

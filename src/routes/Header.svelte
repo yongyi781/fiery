@@ -10,7 +10,6 @@
   <nav class="flex justify-center text-blue-50">
     <ul class="relative flex items-center justify-center">
       <li><a class="min-w-16 px-3 py-2 hover:bg-blue-900" href="/">Home</a></li>
-      <li><a class="min-w-16 px-3 py-2 hover:bg-blue-900" href="/about">About</a></li>
       <li><a class="min-w-16 px-3 py-2 hover:bg-blue-900" href="/oeis">OEIS</a></li>
     </ul>
   </nav>
