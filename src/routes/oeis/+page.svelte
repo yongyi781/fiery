@@ -88,6 +88,7 @@
 
   const defaultQuery = "1,1,2,5,14,42"
   let query: string = $state(defaultQuery)
+  let tried = $state(false)
   let serverResponse: Response | undefined = $state()
   let oeisResponses: OeisResponse[] = $state([])
   let oeisEntries: OeisEntry[] = $derived(
@@ -166,6 +167,7 @@
 
   async function getOeis() {
     if (!fetching && query.trim() != "") {
+      tried = true
       fetching = true
       let url = `/oeis/api/search?q=${query}&start=${oeisResponses.length}`
       serverResponse = await fetch(url)
@@ -212,7 +214,7 @@
 
 {#if oeisEntries.length == 0}
   <div class="mt-10 text-center">
-    {fetching ? "Grabbing data from OEIS..." : "No results."}
+    {fetching ? "Grabbing data from OEIS..." : tried ? "No results." : ""}
   </div>
 {:else}
   <Resizable.PaneGroup direction="horizontal" class="mt-1">
