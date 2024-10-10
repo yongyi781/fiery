@@ -1,6 +1,5 @@
 import { createHighlighter, type BundledLanguage, type BundledTheme, type HighlighterGeneric } from "shiki"
 
-class Highlight {}
 const mathReplacements: { [key: string]: string } = {
   alpha: "α",
   beta: "β",
@@ -36,7 +35,8 @@ const mathReplacements: { [key: string]: string } = {
   Product_: "∏_",
   Integral_: "∫_",
   "<=": "≤",
-  ">=": "≥"
+  ">=": "≥",
+  "<>": "≠"
 }
 
 const mathReplacementRegex = new RegExp(
@@ -57,16 +57,23 @@ export async function tokenize(text: string) {
           patterns: [
             {
               name: "group.parentheses",
-              begin: "(\\()",
-              end: "(\\))",
-              captures: { 1: { name: "bracket" } },
+              begin: "\\(",
+              end: "\\)",
+              captures: { 0: { name: "bracket" } },
               patterns: [{ include: "$self" }]
             },
             {
               name: "group.brackets",
-              begin: "(\\[)",
-              end: "(\\])",
-              captures: { 1: { name: "bracket" } },
+              begin: "\\[",
+              end: "\\]",
+              captures: { 0: { name: "bracket" } },
+              patterns: [{ include: "$self" }]
+            },
+            {
+              name: "group.braces",
+              begin: "{",
+              end: "}",
+              captures: { 0: { name: "bracket" } },
               patterns: [{ include: "$self" }]
             },
             { name: "anumber", match: "A\\d{6}" },
@@ -133,7 +140,7 @@ export async function tokenize(text: string) {
             { name: "integral", match: "∫" },
             {
               name: "sqrt.constant",
-              match: "(√)(\\()(\\d+?)(\\))",
+              match: "(√)(\\()([^(]+?)(\\))",
               captures: {
                 1: { name: "sqrt.constant.symbol" },
                 2: { name: "hidden" },
@@ -141,6 +148,7 @@ export async function tokenize(text: string) {
                 4: { name: "hidden" }
               }
             },
+            { name: "sqrt", match: "√" },
             { name: "binomial", match: "\\b(?:binomial|multinomial)\\([^(]+?\\)" }
           ],
           repository: {},
@@ -188,6 +196,7 @@ export async function tokenize(text: string) {
             { scope: "summation", settings: { foreground: "var(--times)", background: "summation" } },
             { scope: "product", settings: { foreground: "var(--power)", background: "product" } },
             { scope: "integral", settings: { foreground: "var(--times)", background: "integral" } },
+            { scope: "sqrt", settings: { foreground: "var(--sqrt)" } },
             { scope: "sqrt.constant.symbol", settings: { background: "sqrt.constant.symbol" } },
             { scope: "sqrt.constant.content", settings: { background: "sqrt.constant.content" } },
             { scope: "binomial", settings: { background: "binomial" } }
@@ -200,7 +209,7 @@ export async function tokenize(text: string) {
     return mathReplacements[s]
   })
   return highlighter.codeToTokensBase(input, {
-    lang: "math" as any,
+    lang: "math" as BundledLanguage,
     includeExplanation: "scopeName"
   })
 }

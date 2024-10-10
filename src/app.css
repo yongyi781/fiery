@@ -32,6 +32,7 @@
     --divides: #a16207;
     --power: #9333ea;
     --equals: #db2777;
+    --sqrt: #4c8a2a;
   }
   .dark {
     --background: 222.2 84% 4.9%;
@@ -60,6 +61,7 @@
     --times: #60a5fa;
     --power: #a78bfa;
     --equals: #fea4bf;
+    --sqrt: #b5cea8;
   }
 }
 
