@@ -122,7 +122,7 @@ createHighlighter({
         {
           name: "subscript",
           contentName: "subscript.content",
-          begin: "(\\_)",
+          begin: "(\\_)(?!Reversion)", // Series_Reversion... come on
           end: "$|(?=[^a-zA-Z0-9_])|\\)",
           captures: { 1: { name: "hidden" } },
           patterns: [{ include: "$self" }]

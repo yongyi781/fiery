@@ -312,7 +312,9 @@
           {#if selected.example != null && selected.example.length > 0}
             <div>
               <h3 class="mt-3 text-xl font-bold">Example</h3>
-              <pre class="ml-10 whitespace-pre-wrap break-words text-sm">{selected.example.join("\n")}</pre>
+              <pre class="ml-10 whitespace-pre-wrap break-words text-sm"><OeisText
+                  text={selected.example.join("\n")}
+                /></pre>
             </div>
           {/if}
           {#if selected.formula != null && selected.formula.length > 0}

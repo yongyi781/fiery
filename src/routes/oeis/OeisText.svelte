@@ -69,11 +69,11 @@
 {/snippet}
 
 <!-- TODO: Handle binomial coefficients properly. -->
-<span>
-  {#if !rendered}
-    {text}
-  {:else}
-    {#each tokens as line}
+{#if !rendered}
+  {text}
+{:else}
+  {#each tokens as line}
+    <div>
       {#each line.map((token) => ({ ...token, scope: getScope(token) })) as token}
         {#if token.scope === "anumber"}
           <OeisLink anumber={token.content} />
@@ -85,6 +85,6 @@
           <span style={getStyle(token)}>{token.content}</span>
         {/if}
       {/each}
-    {/each}
-  {/if}
-</span>
+    </div>
+  {/each}
+{/if}
