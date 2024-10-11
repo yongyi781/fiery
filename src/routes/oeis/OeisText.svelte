@@ -69,10 +69,10 @@
 {/snippet}
 
 <!-- TODO: Handle binomial coefficients properly. -->
-{#if !rendered}
-  {text}
-{:else}
-  <div>
+<span>
+  {#if !rendered}
+    {text}
+  {:else}
     {#each tokens as line}
       {#each line.map((token) => ({ ...token, scope: getScope(token) })) as token}
         {#if token.scope === "anumber"}
@@ -86,5 +86,5 @@
         {/if}
       {/each}
     {/each}
-  </div>
-{/if}
+  {/if}
+</span>

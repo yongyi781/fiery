@@ -318,9 +318,7 @@
           {#if selected.formula != null && selected.formula.length > 0}
             <div>
               <h3 class="mt-3 text-xl font-bold">Formulas ({selected.formula.length})</h3>
-              <ol
-                class="ml-10 list-decimal space-y-2 whitespace-pre-wrap font-mono text-sm marker:text-gray-400"
-              >
+              <ol class="ml-10 list-decimal space-y-2 whitespace-pre-wrap font-mono text-sm marker:text-gray-400">
                 {#each selected.formula as formula}
                   <li><OeisText text={formula} /></li>
                 {/each}
@@ -377,7 +375,7 @@
             <h3 class="mt-3 text-xl font-bold">Crossrefs</h3>
             <ul class="ml-10 list-disc">
               {#each selected.xref as xref}
-                <li>{@html processANumbers(xref)}</li>
+                <li><OeisText text={xref} /></li>
               {/each}
             </ul>
           </div>
