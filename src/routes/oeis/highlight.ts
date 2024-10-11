@@ -37,12 +37,14 @@ const mathReplacements: { [key: string]: string } = {
   Integral_: "∫_",
   "<=": "≤",
   ">=": "≥",
-  "<>": "≠"
+  "<>": "≠",
+  "+-": "±",
+  "+/-": "±"
 }
 
 const mathReplacementRegex = new RegExp(
   Object.keys(mathReplacements)
-    .map((key) => (key[key.length - 1] == "=" ? key : `\\b${key}(\\b|(?=_))`))
+    .map((key) => (key.match(/^\w+$/) ? `\\b${key}(\\b|(?=_))` : key.replace("+", "\\+")))
     .join("|"),
   "g"
 )
@@ -84,49 +86,67 @@ createOnigurumaEngine(import("shiki/wasm")).then((engine) => {
           {
             name: "exponent.parentheses",
             contentName: "exponent.content",
-            begin: "(\\^\\()",
-            end: "(\\))",
-            captures: { 1: { name: "hidden" } },
+            begin: "\\^\\(",
+            end: "\\)",
+            captures: { 0: { name: "hidden" } },
             patterns: [{ include: "$self" }]
           },
           {
             name: "exponent.braces",
             contentName: "exponent.content",
-            begin: "(\\^{)",
-            end: "(})",
-            captures: { 1: { name: "hidden" } },
+            begin: "\\^{",
+            end: "}",
+            captures: { 0: { name: "hidden" } },
             patterns: [{ include: "$self" }]
           },
           {
             name: "exponent",
             contentName: "exponent.content",
-            begin: "(\\^)",
+            begin: "\\^",
             end: "$|(?=[^a-zA-Z0-9^(])|(?<![a-zA-Z])(?=\\()",
-            beginCaptures: { 1: { name: "hidden" } },
+            beginCaptures: { 0: { name: "hidden" } },
             patterns: [{ include: "$self" }]
           },
           {
             name: "subscript.parentheses",
             contentName: "subscript.content",
-            begin: "(\\_\\()",
-            end: "(\\))",
-            captures: { 1: { name: "hidden" } },
+            begin: "\\_\\(",
+            end: "\\)",
+            captures: { 0: { name: "hidden" } },
             patterns: [{ include: "$self" }]
           },
           {
             name: "subscript.braces",
             contentName: "subscript.content",
-            begin: "(\\_{)",
-            end: "(})",
-            captures: { 1: { name: "hidden" } },
+            begin: "\\_{",
+            end: "}",
+            captures: { 0: { name: "hidden" } },
             patterns: [{ include: "$self" }]
           },
           {
             name: "subscript",
             contentName: "subscript.content",
-            begin: "(\\_)(?!Reversion)", // Series_Reversion... come on
+            begin: "\\_(?!Reversion)", // Series_Reversion... come on
             end: "$|(?=[^a-zA-Z0-9_])|\\)",
-            captures: { 1: { name: "hidden" } },
+            beginCaptures: { 0: { name: "hidden" } },
+            patterns: [{ include: "$self" }]
+          },
+          {
+            name: "floor",
+            contentName: "floor.content",
+            begin: "floor\\(",
+            end: "\\)",
+            beginCaptures: { 0: { name: "floor.begin" } },
+            endCaptures: { 0: { name: "floor.end" } },
+            patterns: [{ include: "$self" }]
+          },
+          {
+            name: "ceiling",
+            contentName: "ceiling.content",
+            begin: "ceiling\\(",
+            end: "\\)",
+            beginCaptures: { 0: { name: "ceiling.begin" } },
+            endCaptures: { 0: { name: "ceiling.end" } },
             patterns: [{ include: "$self" }]
           },
           { name: "plus", match: "\\+" },
@@ -138,12 +158,12 @@ createOnigurumaEngine(import("shiki/wasm")).then((engine) => {
           { name: "product", match: "∏" },
           { name: "integral", match: "∫" },
           {
-            name: "sqrt.constant",
-            match: "(√)(\\()([^(]+?)(\\))",
+            name: "sqrt",
+            match: "(√)(\\()([^^_(]+?)(\\))",
             captures: {
-              1: { name: "sqrt.constant.symbol" },
+              1: { name: "sqrt.symbol" },
               2: { name: "hidden" },
-              3: { name: "sqrt.constant.content" },
+              3: { name: "sqrt.content" },
               4: { name: "hidden" }
             }
           },
@@ -196,8 +216,24 @@ createOnigurumaEngine(import("shiki/wasm")).then((engine) => {
           { scope: "product", settings: { foreground: "var(--power)", background: "product" } },
           { scope: "integral", settings: { foreground: "var(--times)", background: "integral" } },
           { scope: "sqrt", settings: { foreground: "var(--sqrt)" } },
-          { scope: "sqrt.constant.symbol", settings: { background: "sqrt.constant.symbol" } },
-          { scope: "sqrt.constant.content", settings: { background: "sqrt.constant.content" } },
+          { scope: "sqrt.symbol", settings: { background: "sqrt.symbol" } },
+          { scope: "sqrt.content", settings: { background: "sqrt.content" } },
+          { scope: "floor.begin", settings: { foreground: "var(--floor)", background: "floor.begin" } },
+          { scope: "floor.end", settings: { foreground: "var(--floor)", background: "floor.end" } },
+          { scope: "floor.content", settings: { background: "floor.content" } },
+          { scope: "floor.content floor.content", settings: { background: "floor.content floor.content" } },
+          {
+            scope: "floor.content floor.content floor.content",
+            settings: { background: "floor.content floor.content floor.content" }
+          },
+          { scope: "ceiling.begin", settings: { foreground: "var(--ceiling)", background: "ceiling.begin" } },
+          { scope: "ceiling.end", settings: { foreground: "var(--ceiling)", background: "ceiling.end" } },
+          { scope: "ceiling.content", settings: { background: "ceiling.content" } },
+          { scope: "ceiling.content ceiling.content", settings: { background: "ceiling.content ceiling.content" } },
+          {
+            scope: "ceiling.content ceiling.content ceiling.content",
+            settings: { background: "ceiling.content ceiling.content ceiling.content" }
+          },
           { scope: "binomial", settings: { background: "binomial" } }
         ]
       }
