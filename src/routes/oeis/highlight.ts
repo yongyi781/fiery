@@ -80,7 +80,7 @@ createOnigurumaEngine(import("shiki/wasm")).then((engine) => {
           { name: "anumber", match: "A\\d{6}" },
           {
             name: "author",
-            match: "(?<=[\\s\\[]+|^)(_)(.+?)(_)",
+            match: "(?<=[\\s\\[-]+|^)(_)(.+?)(_)",
             captures: { 1: { name: "hidden" }, 2: { name: "author.content" }, 3: { name: "hidden" } }
           },
           {
