@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { replaceState } from "$app/navigation"
+  import { pushState } from "$app/navigation"
   import { Button } from "$lib/components/ui/button"
   import { Input } from "$lib/components/ui/input"
   import * as Resizable from "$lib/components/ui/resizable"
@@ -87,6 +87,7 @@
   const termsPerRow = 8
 
   const defaultQuery = "1,1,2,5,14,42"
+  let queryInput: string = $state(defaultQuery)
   let query: string = $state(defaultQuery)
   let tried = $state(false)
   let serverResponse: Response | undefined = $state()
@@ -186,29 +187,38 @@
     }
   }
 
-  async function onSubmit(e: SubmitEvent) {
-    e.preventDefault()
-    replaceState(`?${new URLSearchParams({ q: query })}`, { query })
-
+  function clearTable() {
     selected = undefined
     oeisResponses.length = 0
     hasMore = true
+  }
+
+  async function onSubmit(e: SubmitEvent) {
+    e.preventDefault()
+
+    query = queryInput
+    pushState(`?${new URLSearchParams({ q: query })}`, {})
+
+    clearTable()
     await getOeis()
     selected = oeisEntries?.length > 0 ? oeisEntries[0] : undefined
   }
 
-  onMount(async () => {
-    const searchParams = new URLSearchParams(window.location.search)
-    query = searchParams.get("q") ?? defaultQuery
+  async function load() {
+    query = queryInput = new URLSearchParams(window.location.search).get("q") ?? defaultQuery
+    clearTable()
     await getOeis()
     selected = oeisEntries?.length > 0 ? oeisEntries[0] : undefined
-  })
+  }
+
+  onMount(load)
 </script>
 
-<svelte:head><title>OEIS</title></svelte:head>
+<svelte:window onpopstate={load} />
+<svelte:head><title>{query.length == 0 ? "" : `${query} - `}OEIS</title></svelte:head>
 
 <form onsubmit={onSubmit} class="flex items-center gap-x-3">
-  <Input placeholder="Search, e.g. 1,1,2,3,5,8" bind:value={query} />
+  <Input placeholder="Search, e.g. 1,1,2,3,5,8" bind:value={queryInput} />
   <Button type="submit" disabled={fetching}>Search</Button>
 </form>
 
@@ -236,8 +246,8 @@
             {#each oeisEntries as r, i}
               <Table.Row
                 class={cn("select-none", selected?.number === r.number ? "bg-muted hover:bg-muted" : "")}
-                onmousedown={() => {
-                  if (selected?.number !== r.number) selected = r
+                onmousedown={(e) => {
+                  if (e.button === 0 && selected?.number !== r.number) selected = r
                 }}
               >
                 <Table.Cell class="text-center font-mono">{i + 1}</Table.Cell>
