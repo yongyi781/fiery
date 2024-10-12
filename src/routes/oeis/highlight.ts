@@ -244,7 +244,7 @@ createOnigurumaEngine(import("shiki/wasm")).then((engine) => {
   })
 })
 
-export async function tokenize(text: string) {
+export function tokenize(text: string) {
   if (highlighter == null) return []
   const input = text.replaceAll(mathReplacementRegex, (s) => {
     return mathReplacements[s]

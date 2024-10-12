@@ -13,7 +13,7 @@
     if (text) {
       rendered = false
       setTimeout(async () => {
-        tokens = await tokenize(text)
+        if (text) tokens = tokenize(text)
         rendered = true
       }, 0)
     }
