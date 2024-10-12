@@ -323,7 +323,7 @@
             <div>
               <h3 class="mt-3 text-xl font-bold">Example</h3>
               <pre class="ml-10 whitespace-pre-wrap break-words text-sm"><OeisText
-                  text={selected.example.join("\n")}
+                  text={selected.example?.join("\n")}
                 /></pre>
             </div>
           {/if}

@@ -10,10 +10,10 @@
   let rendered = $state(false)
   let tokens: ThemedToken[][] = $state([])
   $effect(() => {
-    if (text) {
+    if (text != null) {
       rendered = false
       setTimeout(async () => {
-        if (text) tokens = tokenize(text)
+        tokens = tokenize(text)
         rendered = true
       }, 0)
     }
