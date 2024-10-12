@@ -87,8 +87,8 @@
   const termsPerRow = 8
 
   const defaultQuery = "1,1,2,5,14,42"
-  let queryInput: string = $state(defaultQuery)
-  let query: string = $state(defaultQuery)
+  let queryInput: string = $state("")
+  let query: string = $state("")
   let tried = $state(false)
   let serverResponse: Response | undefined = $state()
   let oeisResponses: OeisResponse[] = $state([])
