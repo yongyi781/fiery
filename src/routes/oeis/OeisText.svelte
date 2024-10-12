@@ -58,7 +58,7 @@
       } else if (scopeName.includes("sqrt.content")) {
         isSqrtContent = true
       } else if (scopeName.match(/(?:floor|ceiling).(?:begin|end)/)) {
-        fontSize *= 1.4
+        fontSize *= 1.35
       }
     }
     if (isSqrtSymbol) {

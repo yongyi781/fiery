@@ -16,6 +16,7 @@
     data: string
     name: string
     comment?: string[]
+    reference?: string[]
     link?: string[]
     formula?: string[]
     example?: string[]
@@ -44,6 +45,7 @@
     data: bigint[]
     name: string
     comment?: string[]
+    reference?: string[]
     links?: string[]
     formula?: string[]
     example?: string[]
@@ -143,10 +145,6 @@
 
   function processAuthors(s: string) {
     return s.replaceAll(/(?: |^)_(.+?)_/g, ' <a href="https://oeis.org/wiki/User:$1" target="_blank">$1</a>')
-  }
-
-  function processANumbers(s: string) {
-    return s.replaceAll(/A((?:\d+){6})/g, '<a href="?q=id:A$1" target="_blank" class="anumber">A$1</a>')
   }
 
   function syntaxHighlight(s: string) {
@@ -379,6 +377,16 @@
               <ul class="ml-10 list-disc space-y-2 whitespace-pre-wrap">
                 {#each selected.links as link}
                   <li>{@html link}</li>
+                {/each}
+              </ul>
+            </div>
+          {/if}
+          {#if selected.reference != null && selected.reference.length > 0}
+            <div>
+              <h3 class="mt-3 text-xl font-bold">References</h3>
+              <ul class="ml-10 list-disc space-y-2 whitespace-pre-wrap">
+                {#each selected.reference as reference}
+                  <li>{reference}</li>
                 {/each}
               </ul>
             </div>
