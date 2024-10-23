@@ -28,6 +28,10 @@
     $effect(() => {
       if (animate) requestAnimationFrame(draw)
     })
+
+    $effect(() => {
+      code = formatTMRule(rule)
+    })
   })
 </script>
 
