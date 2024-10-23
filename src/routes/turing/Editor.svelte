@@ -1,35 +1,21 @@
 <script lang="ts">
-  import { Button } from "$lib/components/ui/button"
-  import * as DropdownMenu from "$lib/components/ui/dropdown-menu"
-  import { Input } from "$lib/components/ui/input"
-  import { Label } from "$lib/components/ui/label"
   import { cn } from "$lib/utils"
-  import { defaultTM, formatTMRule, getTmStateColor, parseTMRule, type TMRule } from "./turing"
+  import { getTmStateColor, type TMRule } from "./turing"
 
   interface Props {
     rule: TMRule
   }
 
-  let code = $state("")
-  // svelte-ignore state_referenced_locally
-  let { rule = $bindable(parseTMRule(code)) }: Props = $props()
-  let numSymbols = 2
+  let { rule = $bindable() }: Props = $props()
+  function numSymbols() {
+    return rule.length === 0 ? 0 : rule[0].length
+  }
 
   function getStateColor(state: number) {
     const res = getTmStateColor(state)
     return `rgb(${res[0]}, ${res[1]}, ${res[2]})`
   }
-
-  $effect(() => {
-    code = formatTMRule(rule)
-  })
 </script>
-
-<svelte:window
-  onpopstate={() => {
-    rule = parseTMRule(new URLSearchParams(location.search).get("rule") ?? defaultTM)
-  }}
-/>
 
 <div class="w-full text-center">
   <div class="font-mono text-sm">
@@ -49,10 +35,10 @@
             onkeydown={(e) => {
               if (e.key === "ArrowUp" || e.key === "ArrowRight") {
                 e.preventDefault()
-                cell.symbol = (cell.symbol + 1) % numSymbols
+                cell.symbol = (cell.symbol + 1) % numSymbols()
               } else if (e.key === "ArrowDown" || e.key === "ArrowLeft") {
                 e.preventDefault()
-                cell.symbol = (cell.symbol + numSymbols - 1) % numSymbols
+                cell.symbol = (cell.symbol + numSymbols() - 1) % numSymbols()
               }
             }}
           /><input

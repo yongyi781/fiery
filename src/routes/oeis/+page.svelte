@@ -10,6 +10,7 @@
   import SquareTable from "./SquareTable.svelte"
   import TriTable from "./TriTable.svelte"
   import OeisText from "./OeisText.svelte"
+  import { page } from "$app/stores"
 
   interface OeisResponse {
     number: number
@@ -89,8 +90,9 @@
   const termsPerRow = 8
 
   const defaultQuery = "1,1,2,5,14,42"
-  let queryInput: string = $state("")
-  let query: string = $state("")
+  const initQuery = $state($page.url.searchParams.get("q") ?? defaultQuery)
+  let queryInput: string = $state(initQuery)
+  let query: string = $state(initQuery)
   let tried = $state(false)
   let serverResponse: Response | undefined = $state()
   let oeisResponses: OeisResponse[] = $state([])
@@ -213,7 +215,10 @@
 </script>
 
 <svelte:window onpopstate={load} />
-<svelte:head><title>{query.length == 0 ? "" : `${query} - `}OEIS</title></svelte:head>
+<svelte:head>
+  <title>{query.length == 0 ? "" : `${query} - `}OEIS</title>
+  <meta name="description" content="Pretty OEIS client that formats math equations and OEIS links." />
+</svelte:head>
 
 <form onsubmit={onSubmit} class="flex items-center gap-x-3">
   <Input placeholder="Search, e.g. 1,1,2,3,5,8" bind:value={queryInput} />
