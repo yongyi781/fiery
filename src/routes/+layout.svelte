@@ -18,6 +18,6 @@
   </main>
 
   <footer class="flex flex-col items-center justify-center p-3 sm:px-0">
-    <p class="text-gray-600 text-xs">© 2024 Fiery</p>
+    <p class="text-xs text-gray-600">© 2024 Fiery</p>
   </footer>
 </div>

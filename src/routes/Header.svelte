@@ -11,6 +11,7 @@
     <ul class="relative flex items-center justify-center">
       <li><a class="min-w-16 px-3 py-2 hover:bg-blue-900" href="/">Home</a></li>
       <li><a class="min-w-16 px-3 py-2 hover:bg-blue-900" href="/oeis">OEIS</a></li>
+      <li><a class="min-w-16 px-3 py-2 hover:bg-blue-900" href="/turing">Turing Machine Visualizer</a></li>
     </ul>
   </nav>
 
