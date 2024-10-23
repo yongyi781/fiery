@@ -124,12 +124,16 @@
 
     $effect(() => {
       renderOffCanvas()
+      untrack(() => renderMainCanvas())
+    })
+
+    $effect(() => {
       renderMainCanvas()
     })
   })
 </script>
 
-<div class="flex w-svw flex-col gap-y-3 p-4">
+<div class="relative flex w-svw flex-col gap-y-3 p-4">
   <div class="relative overflow-auto">
     <canvas
       id="canvas"
@@ -208,20 +212,34 @@
         }
       }}
       onmousedown={(e) => {
-        mouseDown = true
-        renderMainCanvas()
+        if (e.button === 0) {
+          mouseDown = true
+          renderMainCanvas()
+        }
       }}
       onmouseup={(e) => {
-        mouseDown = false
-        renderMainCanvas()
+        if (e.button === 0) {
+          mouseDown = false
+        }
+        if (e.button === 0) {
+          renderMainCanvas()
+        }
       }}
       onmouseenter={(e) => {
-        mouseOver = true
-        renderMainCanvas()
+        if (e.button === 0) {
+          mouseOver = true
+        }
+        if (e.button === 0) {
+          renderMainCanvas()
+        }
       }}
       onmouseleave={(e) => {
-        mouseOver = false
-        renderMainCanvas()
+        if (e.button === 0) {
+          mouseOver = false
+        }
+        if (e.button === 0) {
+          renderMainCanvas()
+        }
       }}
       onmousemove={(e) => {
         mouseX = e.offsetX
@@ -239,15 +257,12 @@
     ).toFixed(0)}
     ns per pixel
   </div>
+  {#if mouseDown && mouseOver && mouseY > 0}
+    <div class="pointer-events-none absolute rounded-md bg-slate-700 px-2 py-1" style="left: 1rem; bottom: 1rem;">
+      Step {mouseOverInfo.t} | x = {mouseOverInfo.x}
+      {#if mouseOverInfo.tape != null}
+        | head = {mouseOverInfo.tape.head} | state = {String.fromCharCode(mouseOverInfo.tape?.state + 65)}
+      {/if}
+    </div>
+  {/if}
 </div>
-{#if mouseDown && mouseOver && mouseY > 0}
-  <div
-    class="pointer-events-none absolute rounded-md bg-slate-700 px-2 py-1"
-    style="left: {mouseClientX + 10}px; top: {mouseClientY + 20}px;"
-  >
-    Step {mouseOverInfo.t} | x = {mouseOverInfo.x}
-    {#if mouseOverInfo.tape != null}
-      | head = {mouseOverInfo.tape.head} | state = {String.fromCharCode(mouseOverInfo.tape?.state + 65)}
-    {/if}
-  </div>
-{/if}
