@@ -1,6 +1,6 @@
 <script lang="ts">
   import { cn } from "$lib/utils"
-  import { getTmStateColor, type TMRule } from "./turing"
+  import { getTmStateColor, getTmStateColorCss, type TMRule } from "./turing"
 
   interface Props {
     rule: TMRule
@@ -10,11 +10,6 @@
   function numSymbols() {
     return rule.length === 0 ? 0 : rule[0].length
   }
-
-  function getStateColor(state: number) {
-    const res = getTmStateColor(state)
-    return `rgb(${res[0]}, ${res[1]}, ${res[2]})`
-  }
 </script>
 
 <div class="w-full text-center">
@@ -22,7 +17,7 @@
     {#each rule as row, i}
       <div>
         {#each row as cell, j}
-          <span style="color: {getStateColor(i)};">{String.fromCharCode(i + 65)}{j}</span>
+          <span style="color: {getTmStateColorCss(i)};">{String.fromCharCode(i + 65)}{j}</span>
           &mapsto;
           <input
             type="number"
@@ -60,7 +55,7 @@
               "w-5 bg-transparent py-1 text-center outline-none",
               i === 0 && j === 0 ? "" : "border border-blue-800"
             )}
-            style="color: {getStateColor(cell.toState)};"
+            style="color: {getTmStateColorCss(cell.toState)};"
             disabled={i === 0 && j === 0}
             value={cell.toState === -1 ? "-" : String.fromCharCode(cell.toState + 65)}
             oninput={(e) => {

@@ -8,7 +8,7 @@ export const tmStateColors = [
   [255, 0, 0, 255] // Solid red for halt
 ]
 
-export const maxSymbolColor = 160
+export const maxSymbolColor = 175
 
 export function getTmSymbolColor(x: number, nSymbols: number) {
   return Math.round((x / (nSymbols - 1)) * maxSymbolColor)
@@ -19,6 +19,11 @@ export function getTmStateColor(state: number) {
     return tmStateColors[tmStateColors.length - 1]
   }
   return tmStateColors[state]
+}
+
+export function getTmStateColorCss(state: number) {
+  const res = getTmStateColor(state)
+  return `rgb(${res[0]}, ${res[1]}, ${res[2]})`
 }
 
 export const defaultTM = "1RB0RC_1LB1LD_0RA0LD_1LA1RC"

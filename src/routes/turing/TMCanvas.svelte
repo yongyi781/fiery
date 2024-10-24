@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte"
-  import { getTmStateColor, getTmSymbolColor, Tape, TuringMachine, type TMRule } from "./turing"
+  import { getTmStateColor, getTmStateColorCss, getTmSymbolColor, Tape, TuringMachine, type TMRule } from "./turing"
 
   interface Props {
     rule: TMRule
@@ -38,6 +38,8 @@
     t: 0,
     x: 0
   })
+  // svelte-ignore non_reactive_update
+  let tooltip: HTMLDivElement
 
   function numSteps() {
     return Math.floor(height / scale)
@@ -59,6 +61,7 @@
 
     // Run it once to get how wide the canvas should be
     const n = numSteps()
+    if (n === 0) return
     m.seek(startStep + n)
     const offset = -m.tape.leftEdge
 
@@ -92,7 +95,7 @@
   }
 
   function renderMainCanvas() {
-    if (ctx == null || height <= 0 || startStep < 0) return
+    if (ctx == null || numSteps() === 0 || startStep < 0) return
 
     canvas.width = offCanvas.width * scale
     canvas.height = offCanvas.height * scale
@@ -120,6 +123,10 @@
 
     $effect(() => {
       m = new TuringMachine($state.snapshot(rule)) // Crucial to use $state.snapshot for better performance
+      untrack(() => {
+        renderOffCanvas()
+        renderMainCanvas()
+      })
     })
 
     $effect(() => {
@@ -138,11 +145,11 @@
     <canvas
       id="canvas"
       class="border-grey-200 mx-auto select-none border"
-      width="1"
-      bind:clientWidth={width}
-      height="1"
+      width="0"
+      height="0"
       tabindex="0"
       bind:this={canvas}
+      bind:clientWidth={width}
       onwheel={(e) => {
         if (e.shiftKey) return
         if (e.ctrlKey || e.metaKey) {
@@ -181,6 +188,7 @@
             animate = !animate
             break
           case "+":
+          case "=":
             e.preventDefault()
             animateSpeed *= 2
             break
@@ -246,6 +254,10 @@
         mouseY = e.offsetY
         mouseClientX = e.clientX
         mouseClientY = e.clientY
+
+        const left = Math.min(mouseClientX + 10, visualViewport?.width! - tooltip.clientWidth - 12)
+        tooltip.style.left = `${left}px`
+        tooltip.style.top = `${mouseY + 30}px`
         renderMainCanvas()
       }}
     ></canvas>
@@ -257,12 +269,30 @@
     ).toFixed(0)}
     ns per pixel
   </div>
-  {#if mouseDown && mouseOver && mouseY > 0}
-    <div class="pointer-events-none absolute rounded-md bg-slate-700 px-2 py-1" style="left: 1rem; bottom: 1rem;">
-      Step {mouseOverInfo.t} | x = {mouseOverInfo.x}
-      {#if mouseOverInfo.tape != null}
-        | head = {mouseOverInfo.tape.head} | state = {String.fromCharCode(mouseOverInfo.tape?.state + 65)}
-      {/if}
-    </div>
-  {/if}
+  <div
+    class="pointer-events-none absolute text-nowrap rounded-md bg-slate-50 px-2 py-1 dark:bg-slate-700 {mouseDown &&
+    mouseOver &&
+    mouseY >= 0 &&
+    mouseOverInfo.tape != null
+      ? ''
+      : 'hidden'}"
+    bind:this={tooltip}
+  >
+    {#if mouseOverInfo.tape != null}
+      <h3 class="mb-1 text-lg font-bold">
+        {mouseOverInfo.t}
+        <span style="color: {getTmStateColorCss(mouseOverInfo.tape.state)}"
+          >{String.fromCharCode(mouseOverInfo.tape.state + 65)}{mouseOverInfo.tape.read()}</span
+        >
+      </h3>
+      <div class="grid grid-cols-[auto_auto] gap-x-1">
+        <div class=" font-semibold">Size</div>
+        <div class="text-right">{mouseOverInfo.tape.size}</div>
+        <div class=" font-semibold">Head</div>
+        <div class="text-right">{mouseOverInfo.tape.head}</div>
+        <div class=" font-semibold">Tape[{mouseOverInfo.x}]</div>
+        <div class="text-right">{mouseOverInfo.tape.at(mouseOverInfo.x)}</div>
+      </div>
+    {/if}
+  </div>
 </div>
