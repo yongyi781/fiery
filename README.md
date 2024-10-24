@@ -19,6 +19,6 @@ My main website is at https://yongyi781.github.io/.
 This Turing machine visualizer:
 * Can animate and show the evolution of a Turing machine up to billions of steps
 * Achieves a Turing machine simulation rate of about 100M steps per second on my machine, using pure Typescript.
-* Achieves a rendering time of 10 nanoseconds per pixel using Canvas 2D.
+* Achieves a rendering time of between 10 and 20 nanoseconds per pixel on my machine, using HTML5 Canvas's 2D rendering context.
 
-![image](https://github.com/user-attachments/assets/45371917-9ab9-42f6-90e8-d8a635c645db)
+![image](https://github.com/user-attachments/assets/0fd16f61-d2fa-4074-8ac0-2fd922b76c8f)
