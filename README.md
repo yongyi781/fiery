@@ -1,6 +1,6 @@
-# My Website (server-side)
+# My other website
 
-This is the portion of my website that has everything that requires a server.
+This is my second website, mainly for hosting interactive demos.
 
 The website is hosted at https://fiery.pages.dev/.
 
