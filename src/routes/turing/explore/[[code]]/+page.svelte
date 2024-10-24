@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { browser } from "$app/environment"
   import { pushState } from "$app/navigation"
   import { page } from "$app/stores"
   import { Button } from "$lib/components/ui/button"
@@ -9,13 +8,14 @@
   import { onMount } from "svelte"
   import { randomChoice } from "../../../../utils"
   import Editor from "../../Editor.svelte"
-  import Interactive from "../../Interactive.svelte"
+  import Explore from "../../Explore.svelte"
   import machines from "../../machines"
   import { formatTMRule, parseTMRule, type TMRule } from "../../turing"
 
+  const { data } = $props()
+
   const initStartStep = Number($page.url.searchParams.get("t")).valueOf() || 0
-  let initCode = $page.params.code ?? ""
-  if (browser && initCode === "") initCode = randomChoice(machines)
+  let initCode = data.code
   let code = $state(initCode)
   let rule: TMRule = $state(parseTMRule(initCode))
   let scale = $state(Number($page.url.searchParams.get("scale")).valueOf() || 2)
@@ -26,18 +26,6 @@
   let animateSpeed = $state(Number($page.url.searchParams.get("animateSpeed")).valueOf() || 1)
   let debug = $page.url.searchParams.has("debug")
 
-  function load() {
-    const code = location.pathname.split("/").pop()
-    if (code === "interactive" || !code) rule = parseTMRule(randomChoice(machines))
-    else rule = parseTMRule(code)
-  }
-
-  function setRuleAndPushState(newCode: string) {
-    rule = parseTMRule(newCode)
-    startStep = initStartStep
-    pushState(`/turing/interactive/${newCode}`, {})
-  }
-
   function draw() {
     startStep = Math.max(0, startStep + animateSpeed)
     if (animate) requestAnimationFrame(draw)
@@ -45,7 +33,7 @@
 
   onMount(() => {
     $effect(() => {
-      code = formatTMRule(rule)
+      if (rule.length > 0) code = formatTMRule(rule)
     })
 
     $effect(() => {
@@ -54,9 +42,15 @@
   })
 </script>
 
-<svelte:window onpopstate={load} />
+<svelte:window
+  onpopstate={() => {
+    const code = location.pathname.split("/").pop()
+    if (code === "Explore" || !code) rule = parseTMRule(randomChoice(machines))
+    else rule = parseTMRule(code)
+  }}
+/>
 <svelte:head
-  ><title>{code.length === 0 ? "" : `${code} - `}Turing Machine Visualizer - Interactive</title>
+  ><title>{code.length === 0 ? "" : `${code} - `}Turing Machine Visualizer - Explore</title>
   <meta
     name="description"
     content="High performance Turing machine visualizer, useful for the Busy Beaver challenge."
@@ -71,8 +65,31 @@
       target="_blank">standard format</a
     >:</Label
   >
-  <Input id="code" class="w-96 font-mono text-sm" bind:value={code} onchange={() => setRuleAndPushState(code)} />
-  <Button variant="outline" href="/turing/{code}">Overview</Button>
+  <Input
+    id="code"
+    class="w-96 font-mono text-sm invalid:focus:ring-red-500"
+    bind:value={code}
+    oninput={(e) => {
+      const parsed = parseTMRule(code)
+      if (parsed.length === 0) {
+        e.currentTarget.setCustomValidity("Invalid code")
+        e.currentTarget.reportValidity()
+      } else {
+        rule = parsed
+        e.currentTarget.setCustomValidity("")
+        pushState(`/turing/explore/${code}`, {})
+      }
+    }}
+  />
+  <Button
+    variant="outline"
+    onclick={() => {
+      const code = randomChoice(machines)
+      rule = parseTMRule(code)
+      pushState(`/turing/explore/${code}`, {})
+    }}>Random</Button
+  >
+  <Button variant="outline" href="/turing/{code}" class="ml-4">Overview</Button>
 </div>
 <Editor bind:rule />
 <div class="mt-4 flex flex-wrap items-center justify-center gap-1 whitespace-nowrap">
@@ -92,8 +109,9 @@
   />
 </div>
 <div class="mt-3 self-center">
-  <Interactive {rule} bind:scale bind:width bind:height bind:startStep bind:animate bind:animateSpeed {debug} />
+  <Explore {rule} bind:scale bind:width bind:height bind:startStep bind:animate bind:animateSpeed {debug} />
 </div>
 <div class="self-center">
-  <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a>
+  <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;
+  <a class="text-cyan-500 hover:underline" href="/turing/explore/{code}">Permalink</a>
 </div>

@@ -94,24 +94,34 @@ export class Tape {
 export type TMRule = Transition[][]
 
 export function parseTMRule(s: string) {
+  s = s.trim().toUpperCase()
+  if (s.length === 0) return []
   const rule: TMRule = []
+  const lines = s.split("_")
+  if (!lines.every((line) => line.length % 3 === 0 && line.length === lines[0].length)) return []
+  const nSymbols = lines[0].length / 3
   for (const line of s.split("_")) {
-    const ruleLine: Transition[] = []
+    const tr: Transition[] = []
     for (let i = 0; i < line.length; i += 3) {
       if (line[i + 2] === "-")
-        ruleLine.push({
+        tr.push({
           symbol: 1,
           direction: 1,
           toState: -1
         })
-      else
-        ruleLine.push({
-          symbol: line.charCodeAt(i) - "0".charCodeAt(0),
+      else {
+        const symbol = line.charCodeAt(i) - "0".charCodeAt(0)
+        if (symbol < 0 || symbol >= nSymbols) return []
+        if (line[i + 1] !== "R" && line[i + 1] !== "L") return []
+
+        tr.push({
+          symbol,
           direction: line[i + 1] === "L" ? -1 : 1,
           toState: line.charCodeAt(i + 2) - 65
         })
+      }
     }
-    rule.push(ruleLine)
+    rule.push(tr)
   }
   return rule
 }

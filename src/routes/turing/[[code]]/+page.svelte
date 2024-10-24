@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { browser } from "$app/environment"
   import { pushState } from "$app/navigation"
   import { page } from "$app/stores"
   import { Button } from "$lib/components/ui/button"
@@ -12,10 +11,11 @@
   import Overview from "../Overview.svelte"
   import { formatTMRule, parseTMRule, type TMRule } from "../turing"
 
+  let { data } = $props()
+
   const initWidth = Number($page.url.searchParams.get("w")).valueOf() || 512
   const initNumSteps = Number($page.url.searchParams.get("n")).valueOf() || 65536
-  let initCode = $page.params.code ?? ""
-  if (browser && initCode === "") initCode = randomChoice(machines)
+  let initCode = data.code
   let code = $state(initCode)
   let rule: TMRule = $state(parseTMRule(initCode))
   let width = $state(initWidth)
@@ -23,26 +23,20 @@
   let numSteps = $state(initNumSteps)
   let debug = $page.url.searchParams.has("debug")
 
-  function load() {
-    const code = location.pathname.split("/").pop()
-    if (code === "turing" || !code) rule = parseTMRule(randomChoice(machines))
-    else rule = parseTMRule(code)
-  }
-
-  function setRuleAndPushState(newCode: string) {
-    rule = parseTMRule(newCode)
-    pushState(`/turing/${newCode}`, {})
-  }
-
   onMount(() => {
     $effect(() => {
-      code = formatTMRule(rule)
+      if (rule.length > 0) code = formatTMRule(rule)
     })
   })
 </script>
 
-<svelte:window onpopstate={load} />
-<svelte:head
+<svelte:window
+  onpopstate={() => {
+    const code = location.pathname.split("/").pop()
+    if (code === "turing" || !code) rule = parseTMRule(randomChoice(machines))
+    else rule = parseTMRule(code)
+  }}
+/><svelte:head
   ><title>{code.length === 0 ? "" : `${code} - `}Turing Machine Visualizer - Overview</title>
   <meta
     name="description"
@@ -58,8 +52,31 @@
       target="_blank">standard format</a
     >:</Label
   >
-  <Input id="code" class="w-96 font-mono text-sm" bind:value={code} onchange={() => setRuleAndPushState(code)} />
-  <Button variant="outline" href="/turing/interactive/{code}">Interactive</Button>
+  <Input
+    id="code"
+    class="w-96 font-mono text-sm invalid:focus:ring-red-500"
+    bind:value={code}
+    oninput={(e) => {
+      const parsed = parseTMRule(code)
+      if (parsed.length === 0) {
+        e.currentTarget.setCustomValidity("Invalid code")
+        e.currentTarget.reportValidity()
+      } else {
+        rule = parsed
+        e.currentTarget.setCustomValidity("")
+        pushState(`/turing/${code}`, {})
+      }
+    }}
+  />
+  <Button
+    variant="outline"
+    onclick={() => {
+      const code = randomChoice(machines)
+      rule = parseTMRule(code)
+      pushState(`/turing/${code}`, {})
+    }}>Random</Button
+  >
+  <Button variant="outline" href="/turing/explore/{code}" class="ml-4">Explore</Button>
 </div>
 <Editor bind:rule />
 <div class="mt-4 flex flex-wrap items-center justify-center gap-1 whitespace-nowrap">
@@ -74,5 +91,6 @@
   <Overview {rule} {width} {height} bind:numSteps {debug} />
 </div>
 <div class="self-center">
-  <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a>
+  <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;
+  <a class="text-cyan-500 hover:underline" href="/turing/{code}">Permalink</a>
 </div>

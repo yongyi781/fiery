@@ -53,7 +53,7 @@
   }
 
   function renderOffCanvas() {
-    if (ctx == null || offCtx == null || height <= 0 || startStep < 0) return
+    if (ctx == null || offCtx == null || rule.length === 0 || scale <= 0 || height <= 0 || startStep < 0) return
 
     const now = performance.now()
     m.seek(startStep)
