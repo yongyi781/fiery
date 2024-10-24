@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { browser } from "$app/environment"
   import { pushState } from "$app/navigation"
   import { page } from "$app/stores"
   import { Button } from "$lib/components/ui/button"
@@ -12,8 +13,9 @@
   import machines from "../../machines"
   import { formatTMRule, parseTMRule, type TMRule } from "../../turing"
 
-  const initCode = $page.params.code ?? randomChoice(machines)
   const initStartStep = Number($page.url.searchParams.get("t")).valueOf() || 0
+  let initCode = $page.params.code ?? ""
+  if (browser && initCode === "") initCode = randomChoice(machines)
   let code = $state(initCode)
   let rule: TMRule = $state(parseTMRule(initCode))
   let scale = $state(Number($page.url.searchParams.get("scale")).valueOf() || 2)
@@ -49,8 +51,6 @@
     $effect(() => {
       if (animate) requestAnimationFrame(draw)
     })
-
-    code = formatTMRule(rule)
   })
 </script>
 

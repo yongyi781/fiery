@@ -1,19 +1,21 @@
 <script lang="ts">
+  import { browser } from "$app/environment"
   import { pushState } from "$app/navigation"
   import { page } from "$app/stores"
   import { Button } from "$lib/components/ui/button"
   import { Input } from "$lib/components/ui/input"
   import { Label } from "$lib/components/ui/label"
   import { onMount } from "svelte"
+  import { randomChoice } from "../../../utils"
   import Editor from "../Editor.svelte"
+  import machines from "../machines"
   import Overview from "../Overview.svelte"
   import { formatTMRule, parseTMRule, type TMRule } from "../turing"
-  import { randomChoice } from "../../../utils"
-  import machines from "../machines"
 
-  const initCode = $page.params.code ?? randomChoice(machines)
   const initWidth = Number($page.url.searchParams.get("w")).valueOf() || 512
   const initNumSteps = Number($page.url.searchParams.get("n")).valueOf() || 65536
+  let initCode = $page.params.code ?? ""
+  if (browser && initCode === "") initCode = randomChoice(machines)
   let code = $state(initCode)
   let rule: TMRule = $state(parseTMRule(initCode))
   let width = $state(initWidth)
@@ -36,8 +38,6 @@
     $effect(() => {
       code = formatTMRule(rule)
     })
-
-    code = formatTMRule(rule)
   })
 </script>
 

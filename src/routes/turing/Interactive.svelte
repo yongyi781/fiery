@@ -48,10 +48,6 @@
     return Math.floor(height / scale)
   }
 
-  function actualHeight() {
-    return numSteps() * scale
-  }
-
   function scroll(dir: number) {
     startStep = Math.max(0, startStep + Math.round(dir * numSteps()))
   }
@@ -147,7 +143,7 @@
     id="canvas"
     class="border-grey-200 mx-auto select-none overflow-auto border"
     width="0"
-    height="0"
+    height={untrack(() => height)}
     tabindex="0"
     bind:this={canvas}
     onwheel={(e) => {
