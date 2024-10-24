@@ -2,7 +2,9 @@
 
 This is the portion of my website that has everything that requires a server.
 
-My main website is at https://yongyi781.github.io/.
+The website is hosted at https://fiery.pages.dev/.
+
+See also [my other website's repository](https://github.com/yongyi781/yongyi781.github.io).
 
 ## Features
 
