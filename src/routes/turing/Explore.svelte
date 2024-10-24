@@ -34,10 +34,8 @@
   let mouseOver = $state(false)
   let mouseX = 0
   let mouseY = $state(0)
-  let mouseClientX = $state(0)
-  let mouseClientY = $state(0)
   let mouseOverInfo = $state({
-    tape: undefined as Tape | undefined,
+    tape: new Tape(),
     t: 0,
     x: 0
   })
@@ -102,15 +100,20 @@
     ctx.drawImage(offCanvas, 0, 0, canvas.width, canvas.height)
 
     if (mouseDown && mouseOver) {
-      const rect = canvas.getBoundingClientRect()
       ctx.globalCompositeOperation = "source-over"
       ctx.fillStyle = "rgba(192, 220, 255, 0.5)"
       ctx.fillRect(Math.floor(mouseX / scale) * scale, 0, scale, canvas.height)
       ctx.fillRect(0, Math.floor(mouseY / scale) * scale, canvas.width, scale)
-      mouseOverInfo.x = Math.floor((mouseClientX - rect.left) / scale) + m.tape.leftEdge
-      mouseOverInfo.t = Math.floor(mouseY / scale) + startStep
-      m.seek(mouseOverInfo.t)
-      mouseOverInfo.tape = m.tape
+
+      const x = Math.floor(mouseX / scale) + m.tape.leftEdge
+      const t = Math.floor(mouseY / scale) + startStep
+      m.seek(t)
+
+      mouseOverInfo = {
+        tape: m.tape,
+        t: t,
+        x: x
+      }
     }
   }
 
@@ -157,23 +160,25 @@
         if (e.deltaY < 0) animateSpeed *= 2
         else if (e.deltaY > 0 && Math.abs(animateSpeed) > 1) animateSpeed = Math.floor(animateSpeed / 2)
       } else {
+        console.log(e.deltaY)
+
         e.preventDefault()
-        scroll(Math.sign(e.deltaY))
+        scroll(e.deltaY / 500)
       }
     }}
     onkeydown={(e) => {
       switch (e.key) {
         case "ArrowUp":
           e.preventDefault()
-          scroll(-0.5)
+          scroll(-0.25)
+          break
+        case "ArrowDown":
+          e.preventDefault()
+          scroll(0.25)
           break
         case "PageUp":
           e.preventDefault()
           scroll(-1)
-          break
-        case "ArrowDown":
-          e.preventDefault()
-          scroll(0.5)
           break
         case "PageDown":
           e.preventDefault()
@@ -248,12 +253,11 @@
     onmousemove={(e) => {
       mouseX = e.offsetX
       mouseY = e.offsetY
-      mouseClientX = e.clientX
-      mouseClientY = e.clientY
 
       const left = Math.min(e.clientX + 15, visualViewport?.width! - tooltip.clientWidth - 12)
       tooltip.style.left = `${left}px`
       tooltip.style.top = `${e.clientY + 15}px`
+
       renderMainCanvas()
     }}
   ></canvas>

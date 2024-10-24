@@ -21,6 +21,7 @@
   let width = $state(initWidth)
   let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 512)
   let numSteps = $state(initNumSteps)
+  let quality = $state(Number($page.url.searchParams.get("q")).valueOf() || 1)
   let debug = $page.url.searchParams.has("debug")
 
   onMount(() => {
@@ -86,9 +87,11 @@
   <Input id="height" class="w-20" type="number" min={1} max={65535} bind:value={height} />
   <Label for="numSteps" class="ml-4"># steps:</Label>
   <Input id="numSteps" class="w-40" type="number" min={0} bind:value={numSteps} />
+  <Label for="quality" class="ml-4">Quality:</Label>
+  <Input id="quality" class="w-20" type="number" min={1} bind:value={quality} />
 </div>
 <div class="mt-3 self-center">
-  <Overview {rule} {width} {height} bind:numSteps {debug} />
+  <Overview {rule} {width} {height} bind:numSteps {quality} {debug} />
 </div>
 <div class="self-center">
   <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;

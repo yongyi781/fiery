@@ -1,16 +1,17 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte"
-  import { getTmSymbolColor, TuringMachine, type TMRule } from "./turing"
+  import { getTmSymbolColor, Tape, TuringMachine, type TMRule } from "./turing"
 
   interface Props {
     rule: TMRule
     width?: number
     height?: number
     numSteps?: number
+    quality?: number
     debug?: boolean
   }
 
-  let { rule, width = 768, height = 768, numSteps = $bindable(1024), debug = false }: Props = $props()
+  let { rule, width = 768, height = 768, numSteps = $bindable(1024), quality = 1, debug = false }: Props = $props()
 
   let canvas: HTMLCanvasElement
   let ctx: CanvasRenderingContext2D | null
@@ -18,33 +19,48 @@
 
   let renderTime = $state(0)
 
+  function getTapes(start: number, end: number, n: number) {
+    const res: Tape[] = []
+    for (let i = 0; i < n; ++i) {
+      const t = (2 * i + 1) / (2 * n)
+      const index = Math.round((1 - t) * start + t * end)
+      m.seek(index)
+      res.push(m.tape.clone())
+    }
+    return res
+  }
+
+  function getColor(tape: Tape, start: number, end: number, nSymbols: number) {
+    let res = 0
+    for (let i = start; i < end; ++i) res += getTmSymbolColor(tape.at(i), nSymbols)
+    return Math.round(res / (end - start))
+  }
+
   function draw() {
+    console.log("draw")
+
     if (ctx == null) return
     const now = performance.now()
     m.seek(numSteps)
-    const xmaxValue = Math.max(width / 2, -m.tape.leftEdge, m.tape.rightEdge)
+    const xmax = Math.max(Math.floor(width / 2), -m.tape.leftEdge, m.tape.rightEdge)
     m.seek(0)
     const imageData = ctx.createImageData(width, height)
     const nSymbols = rule[0].length
+    const windowHeight = numSteps / height
+    const windowWidth = (2 * xmax) / width
     for (let i = 0; i < height; ++i) {
-      m.seek(Math.round(((i + 0.2) / height) * numSteps))
-      const tape0 = m.tape.clone()
-      m.seek(Math.round(((i + 0.4) / height) * numSteps))
-      const tape1 = m.tape.clone()
-      m.seek(Math.round(((i + 0.6) / height) * numSteps))
-      const tape2 = m.tape.clone()
-      m.seek(Math.round(((i + 0.8) / height) * numSteps))
-      const tape3 = m.tape.clone()
+      const lt = Math.floor(i * windowHeight)
+      const ht = Math.floor((i + 1) * windowHeight)
+      const tapes = getTapes(lt, ht, quality)
       if (m.halted) break
       for (let j = 0; j < width; ++j) {
-        const xr = ((2 * j + 1) / width - 1) * xmaxValue
-        if (xr < m.tape.leftEdge || xr > m.tape.rightEdge) continue
-        const color0 = getTmSymbolColor(tape0.at(Math.round(xr)), nSymbols)
-        const color1 = getTmSymbolColor(tape1.at(Math.round(xr)), nSymbols)
-        const color2 = getTmSymbolColor(tape2.at(Math.round(xr)), nSymbols)
-        const color3 = getTmSymbolColor(tape3.at(Math.round(xr)), nSymbols)
+        const lx = Math.floor((j - Math.floor(width / 2)) * windowWidth)
+        const hx = Math.floor((j + 1 - Math.floor(width / 2)) * windowWidth)
+
+        if (hx < m.tape.leftEdge || lx > m.tape.rightEdge) continue
+        let color = tapes.map((tape) => getColor(tape, lx, hx, nSymbols)).reduce((a, b) => a + b, 0)
         const index = 4 * (i * width + j)
-        for (let k = 0; k < 3; ++k) imageData.data[index + k] = (color0 + color1 + color2 + color3) / 4
+        for (let k = 0; k < 3; ++k) imageData.data[index + k] = color / quality
         imageData.data[index + 3] = 255
       }
     }
