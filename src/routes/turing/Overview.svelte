@@ -92,9 +92,11 @@
   tabindex="0"
   bind:this={canvas}
   onwheel={(e) => {
-    e.preventDefault()
-    if (e.deltaY > 0) numSteps *= 2
-    else if (e.deltaY < 0 && numSteps > 1) numSteps = Math.floor(numSteps / 2)
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault()
+      if (e.deltaY > 0) numSteps *= 2
+      else if (e.deltaY < 0 && numSteps > 1) numSteps = Math.floor(numSteps / 2)
+    }
   }}
   onkeydown={(e) => {
     switch (e.key) {
