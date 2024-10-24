@@ -132,7 +132,7 @@ export function formatTMRule(rule: TMRule) {
     .join("_")
 }
 
-export const turingSnapshotFreq = 10000
+export const turingSnapshotFreq = 32768
 
 /** A Turing machine. */
 export class TuringMachine {
@@ -175,8 +175,11 @@ export class TuringMachine {
     if (this.steps == steps) return
     // Find closest snapshot
     const index = Math.min(Math.floor(steps / turingSnapshotFreq), this.snapshots.length - 1)
-    this.tape = this.snapshots[index].clone()
-    this.steps = index * turingSnapshotFreq
+    // Don't need to jump if we're between index and steps
+    if (this.steps < index * turingSnapshotFreq || this.steps > steps) {
+      this.tape = this.snapshots[index].clone()
+      this.steps = index * turingSnapshotFreq
+    }
     while (this.steps < steps) if (!this.step()) break
   }
 

@@ -5,14 +5,14 @@
   import * as DropdownMenu from "$lib/components/ui/dropdown-menu"
   import { Input } from "$lib/components/ui/input"
   import { Label } from "$lib/components/ui/label"
-  import { Switch } from "$lib/components/ui/switch"
   import { onMount } from "svelte"
-  import Editor from "./Editor.svelte"
-  import TMCanvas from "./TMCanvas.svelte"
-  import { defaultTM, formatTMRule, parseTMRule, type TMRule } from "./turing"
+  import Editor from "../Editor.svelte"
+  import { defaultTM, formatTMRule, parseTMRule, type TMRule } from "../turing"
+  import Thumbnail from "./Thumbnail.svelte"
 
   const initCode = $page.url.searchParams.get("r") ?? ""
-  const initStartStep = Number($page.url.searchParams.get("start")).valueOf() || 0
+  const initWidth = Number($page.url.searchParams.get("w")).valueOf() || 512
+  const initNumSteps = Number($page.url.searchParams.get("steps")).valueOf() || 65536
   let code = $state(initCode)
   let rule: TMRule = $state([])
   if (initCode != null) rule = parseTMRule(initCode)
@@ -20,11 +20,9 @@
     code = formatTMRule(rule)
   })
 
-  let scale = $state(Number($page.url.searchParams.get("scale")).valueOf() || 8)
+  let width = $state(initWidth)
   let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 512)
-  let startStep = $state(initStartStep)
-  let animate = $state($page.url.searchParams.has("animate"))
-  let animateSpeed = $state(Number($page.url.searchParams.get("animateSpeed")).valueOf() || 1)
+  let numSteps = $state(initNumSteps)
   let debug = $page.url.searchParams.has("debug")
 
   function load() {
@@ -33,18 +31,8 @@
 
   function setRuleAndPushState(newCode: string) {
     rule = parseTMRule(newCode)
-    startStep = initStartStep
     pushState(`?${new URLSearchParams({ r: newCode })}`, {})
   }
-
-  function draw() {
-    startStep = Math.max(0, startStep + animateSpeed)
-    if (animate) requestAnimationFrame(draw)
-  }
-
-  $effect(() => {
-    if (animate) requestAnimationFrame(draw)
-  })
 
   onMount(() => {
     load()
@@ -55,11 +43,8 @@
 
 <svelte:window onpopstate={load} />
 <svelte:head
-  ><title>{code.length === 0 ? "" : `${code} - `}Turing Machine Visualizer</title>
-  <meta
-    name="description"
-    content="High performance Turing machine visualizer, useful for the Busy Beaver challenge."
-  />
+  ><title>{code.length === 0 ? "" : `${code} - `}Turing Machine Thumbnail</title>
+  <meta name="description" content="Turing machine thumbnail." />
 </svelte:head>
 
 <div class="flex flex-wrap items-center justify-center gap-1">
@@ -125,23 +110,17 @@
       </DropdownMenu.Group>
     </DropdownMenu.Content>
   </DropdownMenu.Root>
-  <Button variant="outline" href="/turing/thumbnail?r={code}">Thumbnail</Button>
+  <Button variant="outline" href="/turing?r={code}">Interactive</Button>
 </div>
 <Editor bind:rule />
 <div class="mt-4 flex flex-wrap items-center justify-center gap-1 whitespace-nowrap">
-  <Label for="scale">Scale:</Label>
-  <Input id="scale" class="w-20" type="number" min="1" max="32" bind:value={scale} />
-  <Label for="numSteps" class="ml-4">Height:</Label>
-  <Input id="numSteps" class="w-20" type="number" min={1} max={65535} bind:value={height} />
-  <Label for="startStep" class="ml-4">Start step:</Label>
-  <Input id="startStep" class="w-40" type="number" min={0} max={2147483647} bind:value={startStep} />
-  <Button variant="outline" onclick={() => (startStep = 0)}>Top</Button>
-  <Switch id="animate" class="ml-4" bind:checked={animate} /><Label for="animate">Animate</Label><Input
-    type="number"
-    class="w-24"
-    bind:value={animateSpeed}
-  />
+  <Label for="width" class="ml-4">Width:</Label>
+  <Input id="width" class="w-20" type="number" min={1} max={65535} bind:value={width} />
+  <Label for="height" class="ml-4">Height:</Label>
+  <Input id="height" class="w-20" type="number" min={1} max={65535} bind:value={height} />
+  <Label for="numSteps" class="ml-4"># steps:</Label>
+  <Input id="numSteps" class="w-40" type="number" min={0} bind:value={numSteps} />
 </div>
 <div class="mt-3 self-center">
-  <TMCanvas {rule} bind:scale bind:height bind:startStep bind:animate bind:animateSpeed {debug} />
+  <Thumbnail {rule} {width} {height} bind:numSteps {debug} />
 </div>

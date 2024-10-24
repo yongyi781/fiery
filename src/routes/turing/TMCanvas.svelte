@@ -5,26 +5,29 @@
   interface Props {
     rule: TMRule
     scale?: number
+    width?: number
     height?: number
     startStep?: number
     animate?: boolean
     animateSpeed?: number
+    debug?: boolean
   }
 
   let {
     rule,
     scale = $bindable(8),
-    height = $bindable(900),
+    width = $bindable(768),
+    height = $bindable(768),
     startStep = $bindable(0),
     animate = $bindable(false),
-    animateSpeed = $bindable(1)
+    animateSpeed = $bindable(1),
+    debug = false
   }: Props = $props()
 
   let canvas: HTMLCanvasElement
   let ctx: CanvasRenderingContext2D | null
   let offCanvas: OffscreenCanvas
   let offCtx: OffscreenCanvasRenderingContext2D | null
-  let width = $state(0)
   let m = new TuringMachine($state.snapshot(rule))
   let renderTime = $state(0)
   let mouseDown = $state(false)
@@ -40,6 +43,7 @@
   })
   // svelte-ignore non_reactive_update
   let tooltip: HTMLDivElement
+  let leftEdge = -Math.floor(width / (2 * scale))
 
   function numSteps() {
     return Math.floor(height / scale)
@@ -60,30 +64,33 @@
     m.seek(startStep)
 
     // Run it once to get how wide the canvas should be
-    const n = numSteps()
-    if (n === 0) return
-    m.seek(startStep + n)
-    const offset = -m.tape.leftEdge
-
-    offCanvas.width = m.tape.size
-    offCanvas.height = n
+    const w = Math.floor(width / scale)
+    const h = numSteps()
+    if (h === 0) return
+    m.seek(startStep + h)
+    // const offset = -m.tape.leftEdge
+    if (m.tape.head < leftEdge) leftEdge = m.tape.head
+    if (m.tape.head > leftEdge + w - 1) leftEdge = m.tape.head - w + 1
+    m
+    offCanvas.width = w
+    offCanvas.height = h
     offCtx.imageSmoothingEnabled = false
     offCtx.globalCompositeOperation = "copy"
 
     // Now render
     m.seek(startStep)
-    const imageData = offCtx.createImageData(offCanvas.width, offCanvas.height)
+    const imageData = offCtx.createImageData(w, h)
     const nSymbols = rule[0].length
     const offCanvasWidth = offCanvas.width
-    for (let i = 0; i < n; ++i) {
+    for (let t = 0; t < h; ++t) {
       const tape = m.tape
-      for (let j = tape.leftEdge; j <= tape.rightEdge; ++j) {
-        const index = 4 * (i * offCanvasWidth + j + offset)
-        if (j === tape.head) {
+      for (let x = leftEdge; x < leftEdge + w; ++x) {
+        const index = 4 * (t * offCanvasWidth + x - leftEdge)
+        if (x === tape.head) {
           const color = getTmStateColor(tape.state)
           for (let k = 0; k < 4; ++k) imageData.data[index + k] = color[k]
         } else {
-          const color = getTmSymbolColor(tape.at(j), nSymbols)
+          const color = getTmSymbolColor(tape.at(x), nSymbols)
           for (let k = 0; k < 3; ++k) imageData.data[index + k] = color
           imageData.data[index + 3] = 255
         }
@@ -97,7 +104,7 @@
   function renderMainCanvas() {
     if (ctx == null || numSteps() === 0 || startStep < 0) return
 
-    canvas.width = offCanvas.width * scale
+    // canvas.width = offCanvas.width * scale
     canvas.height = offCanvas.height * scale
     ctx.imageSmoothingEnabled = false
     ctx.globalCompositeOperation = "copy"
@@ -110,7 +117,7 @@
       ctx.fillRect(0, y, canvas.width, scale)
       mouseOverInfo.t = Math.floor(mouseY / scale) + startStep
       const rect = canvas.getBoundingClientRect()
-      mouseOverInfo.x = Math.floor((mouseClientX - rect.left) / scale) + m.tape.leftEdge
+      mouseOverInfo.x = Math.floor((mouseClientX - rect.left) / scale) + leftEdge
       m.seek(mouseOverInfo.t)
       mouseOverInfo.tape = m.tape
     }
@@ -145,7 +152,7 @@
     <canvas
       id="canvas"
       class="border-grey-200 mx-auto select-none border"
-      width="0"
+      {width}
       height="0"
       tabindex="0"
       bind:this={canvas}
@@ -262,13 +269,15 @@
       }}
     ></canvas>
   </div>
-  <div class="self-center">
-    Rendering time {renderTime.toFixed(2)} ms | {(
-      (renderTime * 1000000 * scale * scale) /
-      (width * actualHeight())
-    ).toFixed(0)}
-    ns per pixel
-  </div>
+  {#if debug}
+    <div class="self-center">
+      Rendering time {renderTime.toFixed(2)} ms | {(
+        (renderTime * 1000000 * scale * scale) /
+        (width * actualHeight())
+      ).toFixed(0)}
+      ns per pixel
+    </div>
+  {/if}
   <div
     class="pointer-events-none absolute text-nowrap rounded-md bg-slate-50 px-2 py-1 dark:bg-slate-700 {mouseDown &&
     mouseOver &&
