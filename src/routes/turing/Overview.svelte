@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte"
-  import { getTmSymbolColor, TuringMachine, type TMRule } from "../turing"
+  import { getTmSymbolColor, TuringMachine, type TMRule } from "./turing"
 
   interface Props {
     rule: TMRule
@@ -68,60 +68,56 @@
   })
 </script>
 
-<div class="relative flex w-svw flex-col gap-y-3 p-4">
-  <div class="relative overflow-auto">
-    <canvas
-      id="canvas"
-      class="border-grey-200 mx-auto select-none border"
-      {width}
-      {height}
-      tabindex="0"
-      bind:this={canvas}
-      onwheel={(e) => {
+<canvas
+  id="canvas"
+  class="border-grey-200 mx-auto select-none border"
+  {width}
+  {height}
+  tabindex="0"
+  bind:this={canvas}
+  onwheel={(e) => {
+    e.preventDefault()
+    if (e.deltaY > 0) numSteps *= 2
+    else if (e.deltaY < 0 && numSteps > 1) numSteps = Math.floor(numSteps / 2)
+  }}
+  onkeydown={(e) => {
+    switch (e.key) {
+      case "+":
+      case "=":
         e.preventDefault()
-        if (e.deltaY > 0) numSteps *= 2
-        else if (e.deltaY < 0 && numSteps > 1) numSteps = Math.floor(numSteps / 2)
-      }}
-      onkeydown={(e) => {
-        switch (e.key) {
-          case "+":
-          case "=":
-            e.preventDefault()
-            numSteps *= 2
-            break
-          case "-":
-            e.preventDefault()
-            if (numSteps > 1) numSteps = Math.floor(numSteps / 2)
-            break
-          case "Alt":
-            e.preventDefault()
-            break
-          case "Home":
-          case "0":
-            e.preventDefault()
-            numSteps = 65536
-            break
-          case "1":
-          case "2":
-          case "3":
-          case "4":
-          case "5":
-          case "6":
-          case "7":
-          case "8":
-          case "9":
-            e.preventDefault()
-            const baseNumSteps = 2048
-            numSteps = baseNumSteps * 2 ** (e.key.charCodeAt(0) - "1".charCodeAt(0))
-            break
-        }
-      }}
-    ></canvas>
+        numSteps *= 2
+        break
+      case "-":
+        e.preventDefault()
+        if (numSteps > 1) numSteps = Math.floor(numSteps / 2)
+        break
+      case "Alt":
+        e.preventDefault()
+        break
+      case "Home":
+      case "0":
+        e.preventDefault()
+        numSteps = 65536
+        break
+      case "1":
+      case "2":
+      case "3":
+      case "4":
+      case "5":
+      case "6":
+      case "7":
+      case "8":
+      case "9":
+        e.preventDefault()
+        const baseNumSteps = 2048
+        numSteps = baseNumSteps * 2 ** (e.key.charCodeAt(0) - "1".charCodeAt(0))
+        break
+    }
+  }}
+></canvas>
+{#if debug}
+  <div class="self-center">
+    Rendering time {renderTime.toFixed(2)} ms | {((renderTime * 1000000) / (width * height)).toFixed(0)}
+    ns per pixel
   </div>
-  {#if debug}
-    <div class="self-center">
-      Rendering time {renderTime.toFixed(2)} ms | {((renderTime * 1000000) / (width * height)).toFixed(0)}
-      ns per pixel
-    </div>
-  {/if}
-</div>
+{/if}

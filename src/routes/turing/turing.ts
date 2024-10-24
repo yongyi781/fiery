@@ -172,7 +172,7 @@ export class TuringMachine {
   }
 
   seek(steps: number) {
-    if (this.steps == steps) return
+    if (this.steps === steps) return
     // Find closest snapshot
     const index = Math.min(Math.floor(steps / turingSnapshotFreq), this.snapshots.length - 1)
     // Don't need to jump if we're between index and steps

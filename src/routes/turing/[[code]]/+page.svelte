@@ -1,0 +1,78 @@
+<script lang="ts">
+  import { pushState } from "$app/navigation"
+  import { page } from "$app/stores"
+  import { Button } from "$lib/components/ui/button"
+  import { Input } from "$lib/components/ui/input"
+  import { Label } from "$lib/components/ui/label"
+  import { onMount } from "svelte"
+  import Editor from "../Editor.svelte"
+  import Overview from "../Overview.svelte"
+  import { formatTMRule, parseTMRule, type TMRule } from "../turing"
+  import { randomChoice } from "../../../utils"
+  import machines from "../machines"
+
+  const initCode = $page.params.code ?? randomChoice(machines)
+  const initWidth = Number($page.url.searchParams.get("w")).valueOf() || 512
+  const initNumSteps = Number($page.url.searchParams.get("n")).valueOf() || 65536
+  let code = $state(initCode)
+  let rule: TMRule = $state(parseTMRule(initCode))
+  let width = $state(initWidth)
+  let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 512)
+  let numSteps = $state(initNumSteps)
+  let debug = $page.url.searchParams.has("debug")
+
+  function load() {
+    const code = location.pathname.split("/").pop()
+    if (code === "turing" || !code) rule = parseTMRule(randomChoice(machines))
+    else rule = parseTMRule(code)
+  }
+
+  function setRuleAndPushState(newCode: string) {
+    rule = parseTMRule(newCode)
+    pushState(`/turing/${newCode}`, {})
+  }
+
+  onMount(() => {
+    $effect(() => {
+      code = formatTMRule(rule)
+    })
+
+    code = formatTMRule(rule)
+  })
+</script>
+
+<svelte:window onpopstate={load} />
+<svelte:head
+  ><title>{code.length === 0 ? "" : `${code} - `}Turing Machine Visualizer - Overview</title>
+  <meta
+    name="description"
+    content="High performance Turing machine visualizer, useful for the Busy Beaver challenge."
+  />
+</svelte:head>
+
+<div class="flex flex-wrap items-center justify-center gap-1">
+  <Label for="code" class="text-nowrap"
+    >Code in <a
+      class="text-cyan-500 hover:underline"
+      href="https://discuss.bbchallenge.org/t/standard-tm-text-format/60"
+      target="_blank">standard format</a
+    >:</Label
+  >
+  <Input id="code" class="w-96 font-mono text-sm" bind:value={code} onchange={() => setRuleAndPushState(code)} />
+  <Button variant="outline" href="/turing/interactive/{code}">Interactive</Button>
+</div>
+<Editor bind:rule />
+<div class="mt-4 flex flex-wrap items-center justify-center gap-1 whitespace-nowrap">
+  <Label for="width" class="ml-4">Width:</Label>
+  <Input id="width" class="w-20" type="number" min={1} max={65535} bind:value={width} />
+  <Label for="height" class="ml-4">Height:</Label>
+  <Input id="height" class="w-20" type="number" min={1} max={65535} bind:value={height} />
+  <Label for="numSteps" class="ml-4"># steps:</Label>
+  <Input id="numSteps" class="w-40" type="number" min={0} bind:value={numSteps} />
+</div>
+<div class="mt-3 self-center">
+  <Overview {rule} {width} {height} bind:numSteps {debug} />
+</div>
+<div class="self-center">
+  <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a>
+</div>
