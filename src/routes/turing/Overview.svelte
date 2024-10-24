@@ -37,8 +37,6 @@
   }
 
   function draw() {
-    console.log("draw")
-
     if (ctx == null) return
     const now = performance.now()
     m.seek(numSteps)

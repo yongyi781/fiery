@@ -160,8 +160,6 @@
         if (e.deltaY < 0) animateSpeed *= 2
         else if (e.deltaY > 0 && Math.abs(animateSpeed) > 1) animateSpeed = Math.floor(animateSpeed / 2)
       } else {
-        console.log(e.deltaY)
-
         e.preventDefault()
         scroll(e.deltaY / 500)
       }
