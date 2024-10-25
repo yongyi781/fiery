@@ -315,10 +315,13 @@
       <span style="color: {getTmStateColorCss(mouseOverInfo.tape.state)}"
         >{String.fromCharCode(mouseOverInfo.tape.state + 65)}{mouseOverInfo.tape.read()}</span
       >
-      &mapsto; {mouseOverInfo.transition.symbol}{mouseOverInfo.transition.direction === 1 ? "R" : "L"}<span
-        style="color: {getTmStateColorCss(mouseOverInfo.transition.toState)}"
-        >{String.fromCharCode(mouseOverInfo.transition.toState + 65)}</span
-      >
+      {#if mouseOverInfo.transition != null}
+        &mapsto;
+        {mouseOverInfo.transition.symbol}{mouseOverInfo.transition.direction === 1 ? "R" : "L"}<span
+          style="color: {getTmStateColorCss(mouseOverInfo.transition.toState)}"
+          >{String.fromCharCode(mouseOverInfo.transition.toState + 65)}</span
+        >
+      {/if}
     </h3>
     <div class="grid grid-cols-[auto_auto] gap-x-1 font-mono text-sm">
       <div class=" font-semibold">Tape Size</div>
