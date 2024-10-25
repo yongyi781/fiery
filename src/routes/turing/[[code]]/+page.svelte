@@ -5,12 +5,13 @@
   import { Input } from "$lib/components/ui/input"
   import { Label } from "$lib/components/ui/label"
   import { onMount } from "svelte"
-  import { randomChoice } from "../../../utils"
+  import { randomChoice } from "$lib/utils"
   import Content from "../Content.svelte"
   import Editor from "../Editor.svelte"
   import machines from "../machines"
   import Overview from "../Overview.svelte"
   import { formatTMRule, parseTMRule, type TMRule } from "../turing"
+  import { dev } from "$app/environment"
 
   let { data } = $props()
 
@@ -23,7 +24,7 @@
   let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 512)
   let numSteps = $state(initNumSteps)
   let quality = $state(Number($page.url.searchParams.get("q")).valueOf() || 1)
-  let debug = $page.url.searchParams.has("debug")
+  let debug = $page.url.searchParams.has("debug") || dev
 
   onMount(() => {
     $effect(() => {

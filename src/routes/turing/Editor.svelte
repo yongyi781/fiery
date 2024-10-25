@@ -1,6 +1,5 @@
 <script lang="ts">
-  import { cn } from "$lib/utils"
-  import { getTmStateColor, getTmStateColorCss, type TMRule } from "./turing"
+  import { getTmStateColorCss, type TMRule } from "./turing"
 
   interface Props {
     rule: TMRule
@@ -25,6 +24,7 @@
             class="no-arrows w-5 border border-blue-200 bg-transparent py-1 text-center outline-none [appearance:textfield] dark:border-blue-800 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
             maxlength="1"
             autocomplete="off"
+            spellcheck="false"
             onkeydown={(e) => {
               if (e.key === "ArrowUp" || e.key === "ArrowRight") {
                 e.preventDefault()
@@ -38,6 +38,8 @@
             value={cell.direction === -1 ? "L" : "R"}
             class="w-5 border border-blue-200 bg-transparent py-1 text-center outline-none dark:border-blue-800"
             maxlength="1"
+            autocomplete="off"
+            spellcheck="false"
             onkeydown={(e) => {
               if (e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "ArrowDown" || e.key === "ArrowRight") {
                 e.preventDefault()
@@ -52,6 +54,7 @@
             disabled={i === 0 && j === 0}
             maxlength="1"
             autocomplete="off"
+            spellcheck="false"
             oninput={(e) => {
               const s = e.currentTarget.value.charCodeAt(0)
               cell.toState = s === 45 ? -1 : s - 65

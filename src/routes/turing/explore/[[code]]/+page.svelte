@@ -6,12 +6,13 @@
   import { Label } from "$lib/components/ui/label"
   import { Switch } from "$lib/components/ui/switch"
   import { onMount } from "svelte"
-  import { randomChoice } from "../../../../utils"
+  import { randomChoice } from "$lib/utils"
   import Editor from "../../Editor.svelte"
   import Explore from "../../Explore.svelte"
   import machines from "../../machines"
   import { formatTMRule, parseTMRule, type TMRule } from "../../turing"
   import Content from "../../Content.svelte"
+  import { dev } from "$app/environment"
 
   const { data } = $props()
 
@@ -25,7 +26,7 @@
   let startStep = $state(initStartStep)
   let animate = $state($page.url.searchParams.has("animate"))
   let animateSpeed = $state(Number($page.url.searchParams.get("animateSpeed")).valueOf() || 1)
-  let debug = $page.url.searchParams.has("debug")
+  let debug = $page.url.searchParams.has("debug") || dev
 
   onMount(() => {
     $effect(() => {
@@ -61,6 +62,7 @@
     id="code"
     class="w-96 font-mono text-sm invalid:focus:ring-red-500"
     autocomplete="off"
+    spellcheck="false"
     bind:value={code}
     oninput={(e) => {
       const parsed = parseTMRule(code)

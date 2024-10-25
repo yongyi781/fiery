@@ -32,7 +32,7 @@
     debug = false
   }: Props = $props()
 
-  let canvas: HTMLCanvasElement | undefined = $state()
+  let canvas: HTMLCanvasElement
   let ctx: CanvasRenderingContext2D | null
   let offCanvas: OffscreenCanvas
   let offCtx: OffscreenCanvasRenderingContext2D | null
@@ -55,6 +55,9 @@
   // svelte-ignore non_reactive_update
   let tooltip: HTMLDivElement
   let leftEdge = 0
+
+  // For debug
+  let numPixels = $state(1)
 
   function numSteps() {
     return Math.floor(height / scale)
@@ -111,6 +114,8 @@
     ctx.imageSmoothingEnabled = false
     ctx.globalCompositeOperation = "copy"
     ctx.drawImage(offCanvas, 0, 0, canvas.width, canvas.height)
+
+    numPixels = offCanvas.width * offCanvas.height
 
     if (analyzeMode && mouseOver) {
       ctx.globalCompositeOperation = "source-over"
@@ -286,11 +291,11 @@
     }}
   ></canvas>
 </div>
-{#if debug && canvas != null}
+{#if debug}
   <div class="self-center">
     Rendering time {renderTime.toFixed(2)} ms | {(
       (renderTime * 1000000 * scale * scale) /
-      (canvas.width * canvas.height)
+      (numPixels * scale * scale)
     ).toFixed(0)}
     ns per pixel
   </div>

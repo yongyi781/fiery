@@ -221,7 +221,7 @@
 </svelte:head>
 
 <form onsubmit={onSubmit} class="flex items-center gap-x-3">
-  <Input placeholder="Search, e.g. 1,1,2,3,5,8" bind:value={queryInput} />
+  <Input placeholder="Search, e.g. 1,1,2,3,5,8" spellcheck="false" autocomplete="off" bind:value={queryInput} />
   <Button type="submit" disabled={fetching}>Search</Button>
 </form>
 
@@ -276,7 +276,7 @@
       <Resizable.Handle withHandle />
       <Resizable.Pane class="relative">
         <!-- Data -->
-        <div class="oeis absolute h-full w-full overflow-y-auto p-4">
+        <div class="oeis absolute h-full w-full overflow-y-auto px-4 py-2">
           <h2 class="mt-3 text-center text-xl font-bold">
             <a
               href="https://oeis.org/{selected.acode}"

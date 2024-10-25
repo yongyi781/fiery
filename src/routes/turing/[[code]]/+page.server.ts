@@ -1,4 +1,4 @@
-import { randomChoice } from "../../../utils"
+import { randomChoice } from "$lib/utils"
 import machines from "../machines"
 import { parseTMRule } from "../turing"
 import type { PageServerLoad } from "./$types"
