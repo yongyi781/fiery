@@ -144,20 +144,20 @@ export function formatTMRule(rule: TMRule) {
     .join("_")
 }
 
-export const turingSnapshotFreq = 32768
-
 /** A Turing machine. */
 export class TuringMachine {
   rule: TMRule
   tape: Tape
   steps: number
-  snapshots: Tape[]
+  private snapshots: Tape[]
+  private snapshotFrequency: number
 
-  constructor(rule: TMRule, tape: Tape = new Tape(), steps = 0) {
+  constructor(rule: TMRule, tape: Tape = new Tape(), steps = 0, snapshotFrequency = 1 << 16) {
     this.rule = rule
     this.tape = tape
     this.steps = steps
     this.snapshots = [tape.clone()]
+    this.snapshotFrequency = snapshotFrequency
   }
 
   get halted() {
@@ -174,7 +174,7 @@ export class TuringMachine {
     this.tape.step(tr)
     ++this.steps
     // Should we take snapshot?
-    const desiredStep = this.snapshots.length * turingSnapshotFreq
+    const desiredStep = this.snapshots.length * this.snapshotFrequency
     if (this.steps === desiredStep) {
       this.snapshots.push(this.tape.clone())
     }
@@ -184,11 +184,11 @@ export class TuringMachine {
   seek(steps: number) {
     if (this.steps === steps) return
     // Find closest snapshot
-    const index = Math.min(Math.floor(steps / turingSnapshotFreq), this.snapshots.length - 1)
+    const index = Math.min(Math.floor(steps / this.snapshotFrequency), this.snapshots.length - 1)
     // Don't need to jump if we're between index and steps
-    if (this.steps < index * turingSnapshotFreq || this.steps > steps) {
+    if (this.steps < index * this.snapshotFrequency || this.steps > steps) {
       this.tape = this.snapshots[index].clone()
-      this.steps = index * turingSnapshotFreq
+      this.steps = index * this.snapshotFrequency
     }
     while (this.steps < steps) if (!this.step()) break
   }
