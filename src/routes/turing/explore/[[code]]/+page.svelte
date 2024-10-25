@@ -32,6 +32,7 @@
     $effect(() => {
       if (rule.length > 0) code = formatTMRule(rule)
     })
+    document.querySelector("canvas")?.focus()
   })
 </script>
 
