@@ -1,6 +1,14 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte"
-  import { getTmStateColor, getTmStateColorCss, getTmSymbolColor, Tape, TuringMachine, type TMRule } from "./turing"
+  import {
+    getTmStateColor,
+    getTmStateColorCss,
+    getTmSymbolColor,
+    Tape,
+    TuringMachine,
+    type TMRule,
+    type Transition
+  } from "./turing"
 
   interface Props {
     rule: TMRule
@@ -30,17 +38,23 @@
   let offCtx: OffscreenCanvasRenderingContext2D | null
   let m = new TuringMachine($state.snapshot(rule))
   let renderTime = $state(0)
-  let mouseDown = $state(false)
+  let analyzeMode = $state(false)
   let mouseOver = $state(false)
-  let mouseX = 0
+  let mouseX = $state(0)
   let mouseY = $state(0)
   let mouseOverInfo = $state({
-    tape: new Tape(),
     t: 0,
-    x: 0
+    x: 0,
+    tape: new Tape(),
+    transition: {
+      symbol: 0,
+      direction: 1,
+      toState: 25
+    } as Transition
   })
   // svelte-ignore non_reactive_update
   let tooltip: HTMLDivElement
+  let leftEdge = 0
 
   function numSteps() {
     return Math.floor(height / scale)
@@ -57,11 +71,10 @@
     m.seek(startStep)
 
     // Run it once to get how wide the canvas should be
-    const w = Math.floor(width / scale)
     const h = numSteps()
     if (h === 0) return
-    m.seek(startStep + h)
-    const offset = -m.tape.leftEdge
+    m.seek(startStep + h - 1)
+    leftEdge = m.tape.leftEdge
     offCanvas.width = m.tape.size
     offCanvas.height = h
     offCtx.imageSmoothingEnabled = false
@@ -74,7 +87,7 @@
     const offCanvasWidth = offCanvas.width
     for (let t = 0; t < h; ++t) {
       for (let x = m.tape.leftEdge; x <= m.tape.rightEdge; ++x) {
-        const index = 4 * (t * offCanvasWidth + x + offset)
+        const index = 4 * (t * offCanvasWidth + x - leftEdge)
         if (x === m.tape.head) {
           const color = getTmStateColor(m.tape.state)
           for (let k = 0; k < 4; ++k) imageData.data[index + k] = color[k]
@@ -99,22 +112,28 @@
     ctx.globalCompositeOperation = "copy"
     ctx.drawImage(offCanvas, 0, 0, canvas.width, canvas.height)
 
-    if (mouseDown && mouseOver) {
+    if (analyzeMode && mouseOver) {
       ctx.globalCompositeOperation = "source-over"
       ctx.fillStyle = "rgba(192, 220, 255, 0.5)"
       ctx.fillRect(Math.floor(mouseX / scale) * scale, 0, scale, canvas.height)
       ctx.fillRect(0, Math.floor(mouseY / scale) * scale, canvas.width, scale)
 
-      const x = Math.floor(mouseX / scale) + m.tape.leftEdge
+      const x = Math.floor(mouseX / scale) + leftEdge
       const t = Math.floor(mouseY / scale) + startStep
       m.seek(t)
 
       mouseOverInfo = {
-        tape: m.tape,
         t: t,
-        x: x
+        x: x,
+        tape: m.tape,
+        transition: m.peek()
       }
     }
+  }
+
+  function draw() {
+    startStep = Math.max(0, startStep + animateSpeed)
+    if (animate) requestAnimationFrame(draw)
   }
 
   onMount(() => {
@@ -133,6 +152,10 @@
     $effect(() => {
       renderOffCanvas()
       untrack(() => renderMainCanvas())
+    })
+
+    $effect(() => {
+      if (animate) requestAnimationFrame(draw)
     })
 
     $effect(() => {
@@ -195,13 +218,22 @@
           e.preventDefault()
           if (Math.abs(animateSpeed) > 1) animateSpeed = Math.floor(animateSpeed / 2)
           break
+        case "[":
+          e.preventDefault()
+          if (scale > 1) --scale
+          break
+        case "]":
+          ++scale
+          break
         case "Alt":
           e.preventDefault()
           break
         case "Home":
         case "0":
-          e.preventDefault()
-          startStep = 0
+          if (!e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+            e.preventDefault()
+            startStep = 0
+          }
           break
         case "1":
         case "2":
@@ -212,23 +244,17 @@
         case "7":
         case "8":
         case "9":
-          e.preventDefault()
-          const baseSeek = 10
-          startStep = baseSeek * 10 ** (e.key.charCodeAt(0) - "1".charCodeAt(0))
+          if (!e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+            e.preventDefault()
+            const baseSeek = 10
+            startStep = baseSeek * 10 ** (e.key.charCodeAt(0) - "1".charCodeAt(0))
+          }
           break
       }
     }}
     onmousedown={(e) => {
       if (e.button === 0) {
-        mouseDown = true
-        renderMainCanvas()
-      }
-    }}
-    onmouseup={(e) => {
-      if (e.button === 0) {
-        mouseDown = false
-      }
-      if (e.button === 0) {
+        analyzeMode = !analyzeMode
         renderMainCanvas()
       }
     }}
@@ -270,7 +296,7 @@
   </div>
 {/if}
 <div
-  class="pointer-events-none absolute text-nowrap rounded-md bg-slate-50 px-2 py-1 dark:bg-slate-700 {mouseDown &&
+  class="pointer-events-none absolute text-nowrap rounded-md bg-slate-50 px-2 py-1 dark:bg-slate-700 {analyzeMode &&
   mouseOver &&
   mouseY >= 0 &&
   mouseOverInfo.tape != null
@@ -279,16 +305,20 @@
   bind:this={tooltip}
 >
   {#if mouseOverInfo.tape != null}
-    <h3 class="mb-1 text-lg font-bold">
-      {mouseOverInfo.t}
+    <h3 class="mb-1 font-mono text-lg">
+      <span class="mr-2 font-bold">{mouseOverInfo.t}</span>
       <span style="color: {getTmStateColorCss(mouseOverInfo.tape.state)}"
         >{String.fromCharCode(mouseOverInfo.tape.state + 65)}{mouseOverInfo.tape.read()}</span
       >
+      &mapsto; {mouseOverInfo.transition.symbol}{mouseOverInfo.transition.direction === 1 ? "R" : "L"}<span
+        style="color: {getTmStateColorCss(mouseOverInfo.transition.toState)}"
+        >{String.fromCharCode(mouseOverInfo.transition.toState + 65)}</span
+      >
     </h3>
-    <div class="grid grid-cols-[auto_auto] gap-x-1">
-      <div class=" font-semibold">Size</div>
+    <div class="grid grid-cols-[auto_auto] gap-x-1 font-mono text-sm">
+      <div class=" font-semibold">Tape Size</div>
       <div class="text-right">{mouseOverInfo.tape.size}</div>
-      <div class=" font-semibold">Head</div>
+      <div class=" font-semibold">Head Position</div>
       <div class="text-right">{mouseOverInfo.tape.head}</div>
       <div class=" font-semibold">Tape[{mouseOverInfo.x}]</div>
       <div class="text-right">{mouseOverInfo.tape.at(mouseOverInfo.x)}</div>

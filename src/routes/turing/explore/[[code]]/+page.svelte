@@ -11,6 +11,7 @@
   import Explore from "../../Explore.svelte"
   import machines from "../../machines"
   import { formatTMRule, parseTMRule, type TMRule } from "../../turing"
+  import Content from "../../Content.svelte"
 
   const { data } = $props()
 
@@ -26,18 +27,9 @@
   let animateSpeed = $state(Number($page.url.searchParams.get("animateSpeed")).valueOf() || 1)
   let debug = $page.url.searchParams.has("debug")
 
-  function draw() {
-    startStep = Math.max(0, startStep + animateSpeed)
-    if (animate) requestAnimationFrame(draw)
-  }
-
   onMount(() => {
     $effect(() => {
       if (rule.length > 0) code = formatTMRule(rule)
-    })
-
-    $effect(() => {
-      if (animate) requestAnimationFrame(draw)
     })
   })
 </script>
@@ -117,3 +109,4 @@
   <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;
   <a class="text-cyan-500 hover:underline" href="/turing/explore/{code}">Permalink</a>
 </div>
+<Content />

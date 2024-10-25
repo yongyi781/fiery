@@ -6,6 +6,7 @@
   import { Label } from "$lib/components/ui/label"
   import { onMount } from "svelte"
   import { randomChoice } from "../../../utils"
+  import Content from "../Content.svelte"
   import Editor from "../Editor.svelte"
   import machines from "../machines"
   import Overview from "../Overview.svelte"
@@ -98,3 +99,4 @@
   <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;
   <a class="text-cyan-500 hover:underline" href="/turing/{code}">Permalink</a>
 </div>
+<Content />

@@ -1,14 +1,16 @@
 export const tmStateColors = [
-  [255, 169, 178, 255],
-  [239, 202, 97, 255],
-  [137, 212, 255, 255],
-  [169, 225, 137, 255],
-  [86, 233, 209, 255],
-  [232, 182, 255, 255],
+  [255, 179, 196, 255],
+  [255, 203, 111, 255],
+  [147, 222, 255, 255],
+  [169, 237, 154, 255],
+  [242, 191, 255, 255],
+  [98, 243, 219, 255],
+  [221, 223, 117, 255],
+  [255, 255, 255, 255],
   [255, 0, 0, 255] // Solid red for halt
 ]
 
-export const maxSymbolColor = 175
+export const maxSymbolColor = 165
 
 export function getTmSymbolColor(x: number, nSymbols: number) {
   return Math.round((x / (nSymbols - 1)) * maxSymbolColor)
@@ -162,15 +164,13 @@ export class TuringMachine {
     return this.tape.state < 0 || this.tape.state >= this.rule.length
   }
 
+  peek() {
+    return this.rule[this.tape.state]?.[this.tape.read()]
+  }
+
   step() {
-    const row = this.rule[this.tape.state]
-    if (row == null) {
-      return false
-    }
-    const tr = row[this.tape.read()]
-    if (tr == null) {
-      return false
-    }
+    const tr = this.peek()
+    if (!tr) return false
     this.tape.step(tr)
     ++this.steps
     // Should we take snapshot?

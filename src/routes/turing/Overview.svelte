@@ -23,8 +23,7 @@
     const res: Tape[] = []
     for (let i = 0; i < n; ++i) {
       const t = (2 * i + 1) / (2 * n)
-      const index = Math.round((1 - t) * start + t * end)
-      m.seek(index)
+      m.seek(Math.round((1 - t) * start + t * end))
       res.push(m.tape.clone())
     }
     return res
@@ -42,23 +41,26 @@
     m.seek(numSteps)
     const xmax = Math.max(Math.floor(width / 2), -m.tape.leftEdge, m.tape.rightEdge)
     m.seek(0)
+    const w = width
+    const h = height
+    const q = quality
     const imageData = ctx.createImageData(width, height)
     const nSymbols = rule[0].length
     const windowHeight = numSteps / height
     const windowWidth = (2 * xmax) / width
-    for (let i = 0; i < height; ++i) {
+    for (let i = 0; i < h; ++i) {
       const lt = Math.floor(i * windowHeight)
       const ht = Math.floor((i + 1) * windowHeight)
-      const tapes = getTapes(lt, ht, quality)
+      const tapes = getTapes(lt, ht, q)
       if (m.halted) break
-      for (let j = 0; j < width; ++j) {
-        const lx = Math.floor((j - Math.floor(width / 2)) * windowWidth)
-        const hx = Math.floor((j + 1 - Math.floor(width / 2)) * windowWidth)
+      for (let j = 0; j < w; ++j) {
+        const lx = Math.floor((j - Math.floor(w / 2)) * windowWidth)
+        const hx = Math.floor((j + 1 - Math.floor(w / 2)) * windowWidth)
 
         if (hx < m.tape.leftEdge || lx > m.tape.rightEdge) continue
-        let color = tapes.map((tape) => getColor(tape, lx, hx, nSymbols)).reduce((a, b) => a + b, 0)
-        const index = 4 * (i * width + j)
-        for (let k = 0; k < 3; ++k) imageData.data[index + k] = color / quality
+        const color = tapes.map((tape) => getColor(tape, lx, hx, nSymbols)).reduce((a, b) => a + b, 0) / q
+        const index = 4 * (i * w + j)
+        for (let k = 0; k < 3; ++k) imageData.data[index + k] = color
         imageData.data[index + 3] = 255
       }
     }
