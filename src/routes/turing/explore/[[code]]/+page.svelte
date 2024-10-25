@@ -68,6 +68,7 @@
   <Input
     id="code"
     class="w-96 font-mono text-sm invalid:focus:ring-red-500"
+    autocomplete="off"
     bind:value={code}
     oninput={(e) => {
       const parsed = parseTMRule(code)
@@ -94,17 +95,18 @@
 <Editor bind:rule />
 <div class="mt-4 flex flex-wrap items-center justify-center gap-1 whitespace-nowrap">
   <Label for="scale">Scale:</Label>
-  <Input id="scale" class="w-20" type="number" min="1" max="32" bind:value={scale} />
+  <Input type="number" id="scale" class="w-20" min="1" max="32" autocomplete="off" bind:value={scale} />
   <Label for="width" class="ml-4">Width:</Label>
-  <Input id="width" class="w-20" type="number" min={1} max={65535} bind:value={width} />
+  <Input type="number" id="width" class="w-20" min={1} max={65535} autocomplete="off" bind:value={width} />
   <Label for="height" class="ml-4">Height:</Label>
-  <Input id="height" class="w-20" type="number" min={1} max={65535} bind:value={height} />
+  <Input type="number" id="height" class="w-20" min={1} max={65535} autocomplete="off" bind:value={height} />
   <Label for="startStep" class="ml-4">Start step:</Label>
-  <Input id="startStep" class="w-40" type="number" min={0} max={2147483647} bind:value={startStep} />
+  <Input type="number" id="startStep" class="w-40" min={0} max={2147483647} autocomplete="off" bind:value={startStep} />
   <Button variant="outline" onclick={() => (startStep = 0)}>Top</Button>
   <Switch id="animate" class="ml-4" bind:checked={animate} /><Label for="animate">Animate</Label><Input
     type="number"
     class="w-24"
+    autocomplete="off"
     bind:value={animateSpeed}
   />
 </div>

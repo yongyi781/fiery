@@ -56,6 +56,7 @@
   <Input
     id="code"
     class="w-96 font-mono text-sm invalid:focus:ring-red-500"
+    autocomplete="off"
     bind:value={code}
     oninput={(e) => {
       const parsed = parseTMRule(code)
@@ -82,13 +83,13 @@
 <Editor bind:rule />
 <div class="mt-4 flex flex-wrap items-center justify-center gap-1 whitespace-nowrap">
   <Label for="width" class="ml-4">Width:</Label>
-  <Input id="width" class="w-20" type="number" min={1} max={65535} bind:value={width} />
+  <Input type="number" id="width" min={1} max={65535} class="w-20" autocomplete="off" bind:value={width} />
   <Label for="height" class="ml-4">Height:</Label>
-  <Input id="height" class="w-20" type="number" min={1} max={65535} bind:value={height} />
+  <Input type="number" id="height" min={1} max={65535} class="w-20" autocomplete="off" bind:value={height} />
   <Label for="numSteps" class="ml-4"># steps:</Label>
-  <Input id="numSteps" class="w-40" type="number" min={0} bind:value={numSteps} />
+  <Input type="number" id="numSteps" min={0} class="w-40" autocomplete="off" bind:value={numSteps} />
   <Label for="quality" class="ml-4">Quality:</Label>
-  <Input id="quality" class="w-20" type="number" min={1} bind:value={quality} />
+  <Input type="number" id="quality" min={1} class="w-20" autocomplete="off" bind:value={quality} />
 </div>
 <div class="mt-3 self-center">
   <Overview {rule} {width} {height} bind:numSteps {quality} {debug} />
