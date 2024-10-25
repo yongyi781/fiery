@@ -21,12 +21,10 @@
           &mapsto;
           <input
             type="number"
-            class={cn(
-              "no-arrows w-5 bg-transparent py-1 text-center outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none",
-              i === 0 && j === 0 ? "" : "border border-blue-800"
-            )}
-            disabled={i === 0 && j === 0}
             bind:value={cell.symbol}
+            class="no-arrows w-5 border border-blue-200 bg-transparent py-1 text-center outline-none [appearance:textfield] dark:border-blue-800 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+            maxlength="1"
+            autocomplete="off"
             onkeydown={(e) => {
               if (e.key === "ArrowUp" || e.key === "ArrowRight") {
                 e.preventDefault()
@@ -37,12 +35,9 @@
               }
             }}
           /><input
-            class={cn(
-              "w-5 bg-transparent py-1 text-center outline-none",
-              i === 0 && j === 0 ? "" : "border border-blue-800"
-            )}
-            disabled={i === 0 && j === 0}
             value={cell.direction === -1 ? "L" : "R"}
+            class="w-5 border border-blue-200 bg-transparent py-1 text-center outline-none dark:border-blue-800"
+            maxlength="1"
             onkeydown={(e) => {
               if (e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "ArrowDown" || e.key === "ArrowRight") {
                 e.preventDefault()
@@ -51,13 +46,12 @@
               }
             }}
           /><input
-            class={cn(
-              "w-5 bg-transparent py-1 text-center outline-none",
-              i === 0 && j === 0 ? "" : "border border-blue-800"
-            )}
+            value={cell.toState === -1 ? "-" : String.fromCharCode(cell.toState + 65)}
+            class="w-5 border border-blue-200 bg-transparent py-1 text-center outline-none dark:border-blue-800"
             style="color: {getTmStateColorCss(cell.toState)};"
             disabled={i === 0 && j === 0}
-            value={cell.toState === -1 ? "-" : String.fromCharCode(cell.toState + 65)}
+            maxlength="1"
+            autocomplete="off"
             oninput={(e) => {
               const s = e.currentTarget.value.charCodeAt(0)
               cell.toState = s === 45 ? -1 : s - 65
