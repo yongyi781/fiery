@@ -1,6 +1,6 @@
 <script lang="ts">
   import { dev } from "$app/environment"
-  import { goto } from "$app/navigation"
+  import { goto, replaceState } from "$app/navigation"
   import { page } from "$app/stores"
   import { Button } from "$lib/components/ui/button"
   import { Input } from "$lib/components/ui/input"
@@ -13,6 +13,7 @@
   import Explore from "../../Explore.svelte"
   import machines from "../../machines"
   import { formatTMRule, parseTMRule, rulesEqual, Tape, TuringMachine, type TMRule } from "../../turing"
+  import { turingMachineCache } from "$lib/turing-machine-cache.svelte"
 
   const { data } = $props()
 
@@ -37,9 +38,9 @@
     $effect(() => {
       if (!rulesEqual(rule, machine.rule)) {
         const m = new TuringMachine(rule)
-        if ($page.state.tm != null && rulesEqual($page.state.tm.rule, rule)) {
-          m.snapshots = $page.state.tm.snapshots.map((tape) => new Tape(tape))
-          m.snapshotFrequency = $page.state.tm.snapshotFrequency
+        if (turingMachineCache.value != null && rulesEqual(m.rule, turingMachineCache.value.rule)) {
+          m.snapshots = turingMachineCache.value.snapshots.map((tape) => new Tape(tape))
+          m.snapshotFrequency = turingMachineCache.value.snapshotFrequency
         }
         machine = m
       }

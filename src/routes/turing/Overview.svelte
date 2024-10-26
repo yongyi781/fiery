@@ -1,8 +1,9 @@
 <script lang="ts">
   import { goto } from "$app/navigation"
   import { cn } from "$lib/utils"
-  import { onMount, untrack } from "svelte"
+  import { onMount, setContext, untrack } from "svelte"
   import { formatTMRule, getTmSymbolColor, rulesEqual, Tape, TuringMachine } from "./turing"
+  import { turingMachineCache } from "$lib/turing-machine-cache.svelte"
 
   interface Props {
     machine: TuringMachine
@@ -211,8 +212,9 @@
       updateMouse(e)
     }
   }}
-  ondblclick={(e) => {
-    goto(`/turing/explore/${formatTMRule(m.rule)}?t=${mouseOverInfo?.t}`, { state: { tm: m } })
+  ondblclick={() => {
+    turingMachineCache.value = m
+    goto(`/turing/explore/${formatTMRule(m.rule)}?t=${mouseOverInfo?.t}`)
   }}
 ></canvas>
 {#if debug}

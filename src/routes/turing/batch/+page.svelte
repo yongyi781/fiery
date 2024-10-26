@@ -1,7 +1,7 @@
 <script lang="ts">
   import * as Resizable from "$lib/components/ui/resizable"
   import { Textarea } from "$lib/components/ui/textarea"
-  import { localStore } from "$lib/localStore.svelte"
+  import { localStore } from "$lib/local-store.svelte"
   import Overview from "../Overview.svelte"
   import { parseTMRule, TuringMachine } from "../turing"
 
