@@ -1,20 +1,25 @@
 <script lang="ts">
   import { onMount, untrack } from "svelte"
   import {
+    formatTMRule,
     getTmStateColor,
     getTmStateColorCss,
     getTmSymbolColor,
+    rulesEqual,
     Tape,
     TuringMachine,
     type TMRule,
     type Transition
   } from "./turing"
+  import { page } from "$app/stores"
+  import { preventDefault } from "svelte/legacy"
+  import { cn } from "$lib/utils"
 
   interface Props {
     rule: TMRule
+    width: number
+    height: number
     scale?: number
-    width?: number
-    height?: number
     startStep?: number
     animate?: boolean
     animateSpeed?: number
@@ -24,8 +29,8 @@
   let {
     rule,
     scale = $bindable(8),
-    width = $bindable(768),
-    height = $bindable(768),
+    width = $bindable(512),
+    height = $bindable(512),
     startStep = $bindable(0),
     animate = $bindable(false),
     animateSpeed = $bindable(1),
@@ -36,7 +41,7 @@
   let ctx: CanvasRenderingContext2D | null
   let offCanvas: OffscreenCanvas
   let offCtx: OffscreenCanvasRenderingContext2D | null
-  let m = new TuringMachine($state.snapshot(rule))
+  let m: TuringMachine
   let renderTime = $state(0)
   let analyzeMode = $state(false)
   let mouseOver = $state(false)
@@ -52,7 +57,6 @@
       toState: 25
     } as Transition
   })
-  // svelte-ignore non_reactive_update
   let tooltip: HTMLDivElement
   let leftEdge = 0
 
@@ -67,7 +71,7 @@
     startStep = Math.max(0, startStep + Math.round(dir * numSteps()))
   }
 
-  function renderOffCanvas() {
+  function renderOffscreenCanvas() {
     if (ctx == null || offCtx == null || rule.length === 0 || scale <= 0 || height <= 0 || startStep < 0) return
 
     const now = performance.now()
@@ -141,21 +145,40 @@
     if (animate) requestAnimationFrame(draw)
   }
 
+  function updateMouse(e: MouseEvent) {
+    mouseX = e.offsetX
+    mouseY = e.offsetY
+
+    const left = Math.min(e.pageX + 15, visualViewport?.width! - tooltip.clientWidth - 12)
+    tooltip.style.left = `${left}px`
+    tooltip.style.top = `${e.pageY + 15}px`
+  }
+
   onMount(() => {
-    ctx = canvas!.getContext("2d")
+    ctx = canvas.getContext("2d")
     offCanvas = new OffscreenCanvas(0, 0)
     offCtx = offCanvas.getContext("2d")
 
     $effect(() => {
-      m = new TuringMachine($state.snapshot(rule)) // Crucial to use $state.snapshot for better performance
+      const u = $page.state.tm
+      if (u != null && rulesEqual(u.rule, rule)) {
+        // Svelte 5 bug: when navigating back and forth, $page.state loses its prototype.
+        m = new TuringMachine(
+          u.rule,
+          new Tape(u.tape),
+          u.steps,
+          u.snapshots.map((t) => new Tape(t)),
+          u.snapshotFrequency
+        )
+      } else m = new TuringMachine($state.snapshot(rule)) // Crucial to use $state.snapshot for better performance
       untrack(() => {
-        renderOffCanvas()
+        renderOffscreenCanvas()
         renderMainCanvas()
       })
     })
 
     $effect(() => {
-      renderOffCanvas()
+      renderOffscreenCanvas()
       untrack(() => renderMainCanvas())
     })
 
@@ -169,10 +192,10 @@
   })
 </script>
 
-<div class="overflow-auto" style="max-width: {width}px;">
+<div class="overflow-auto" style="max-width: {width + 2}px;">
   <canvas
     id="canvas"
-    class="border-grey-200 mx-auto select-none overflow-auto border"
+    class={cn("mx-auto select-none border", analyzeMode ? "focus:ring-green-500" : "")}
     width="0"
     height={untrack(() => height)}
     tabindex="0"
@@ -196,11 +219,17 @@
       switch (e.key) {
         case "ArrowUp":
           e.preventDefault()
-          scroll(-0.25)
+          if (analyzeMode) {
+          } else {
+            scroll(-0.25)
+          }
           break
         case "ArrowDown":
           e.preventDefault()
-          scroll(0.25)
+          if (analyzeMode) {
+          } else {
+            scroll(0.25)
+          }
           break
         case "PageUp":
           e.preventDefault()
@@ -240,6 +269,14 @@
             startStep = 0
           }
           break
+        case "Enter":
+          e.preventDefault()
+          analyzeMode = true
+          break
+        case "Escape":
+          e.preventDefault()
+          analyzeMode = false
+          break
         case "1":
         case "2":
         case "3":
@@ -260,34 +297,27 @@
     onmousedown={(e) => {
       if (e.button === 0) {
         analyzeMode = !analyzeMode
+        updateMouse(e)
         renderMainCanvas()
       }
     }}
     onmouseenter={(e) => {
       if (e.button === 0) {
         mouseOver = true
-      }
-      if (e.button === 0) {
         renderMainCanvas()
       }
     }}
     onmouseleave={(e) => {
       if (e.button === 0) {
         mouseOver = false
-      }
-      if (e.button === 0) {
         renderMainCanvas()
       }
     }}
     onmousemove={(e) => {
-      mouseX = e.offsetX
-      mouseY = e.offsetY
-
-      const left = Math.min(e.clientX + 15, visualViewport?.width! - tooltip.clientWidth - 12)
-      tooltip.style.left = `${left}px`
-      tooltip.style.top = `${e.clientY + 15}px`
-
-      renderMainCanvas()
+      if (analyzeMode) {
+        updateMouse(e)
+        renderMainCanvas()
+      }
     }}
   ></canvas>
 </div>
@@ -301,7 +331,7 @@
   </div>
 {/if}
 <div
-  class="pointer-events-none absolute text-nowrap rounded-md bg-slate-50 px-2 py-1 dark:bg-slate-700 {analyzeMode &&
+  class="pointer-events-none fixed text-nowrap rounded-md bg-slate-50 px-2 py-1 font-mono text-sm dark:bg-slate-700 {analyzeMode &&
   mouseOver &&
   mouseY >= 0 &&
   mouseOverInfo.tape != null
@@ -310,8 +340,8 @@
   bind:this={tooltip}
 >
   {#if mouseOverInfo.tape != null}
-    <h3 class="mb-1 font-mono text-lg">
-      <span class="mr-2 font-bold">{mouseOverInfo.t}</span>
+    <h3 class="mb-1 text-center text-lg font-bold">
+      <div>({mouseOverInfo.t}, {mouseOverInfo.x})</div>
       <span style="color: {getTmStateColorCss(mouseOverInfo.tape.state)}"
         >{String.fromCharCode(mouseOverInfo.tape.state + 65)}{mouseOverInfo.tape.read()}</span
       >
@@ -323,12 +353,12 @@
         >
       {/if}
     </h3>
-    <div class="grid grid-cols-[auto_auto] gap-x-1 font-mono text-sm">
-      <div class=" font-semibold">Tape Size</div>
+    <div class="grid grid-cols-[auto_auto] gap-x-4">
+      <div class="text-right font-semibold">Tape size</div>
       <div class="text-right">{mouseOverInfo.tape.size}</div>
-      <div class=" font-semibold">Head Position</div>
+      <div class="text-right font-semibold">Head</div>
       <div class="text-right">{mouseOverInfo.tape.head}</div>
-      <div class=" font-semibold">Tape[{mouseOverInfo.x}]</div>
+      <div class="text-right font-semibold">Tape[{mouseOverInfo.x}]</div>
       <div class="text-right">{mouseOverInfo.tape.at(mouseOverInfo.x)}</div>
     </div>
   {/if}

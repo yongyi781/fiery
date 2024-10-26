@@ -1,23 +1,23 @@
 <script lang="ts">
-  import { pushState } from "$app/navigation"
+  import { dev } from "$app/environment"
+  import { goto } from "$app/navigation"
   import { page } from "$app/stores"
   import { Button } from "$lib/components/ui/button"
   import { Input } from "$lib/components/ui/input"
   import { Label } from "$lib/components/ui/label"
-  import { onMount } from "svelte"
   import { randomChoice } from "$lib/utils"
+  import { onMount } from "svelte"
   import Content from "../Content.svelte"
   import Editor from "../Editor.svelte"
   import machines from "../machines"
   import Overview from "../Overview.svelte"
   import { formatTMRule, parseTMRule, type TMRule } from "../turing"
-  import { dev } from "$app/environment"
 
   let { data } = $props()
 
   const initWidth = Number($page.url.searchParams.get("w")).valueOf() || 512
   const initNumSteps = Number($page.url.searchParams.get("n")).valueOf() || 65536
-  let initCode = data.code
+  let initCode = data.code ?? ""
   let code = $state(initCode)
   let rule: TMRule = $state(parseTMRule(initCode))
   let width = $state(initWidth)
@@ -37,8 +37,9 @@
 <svelte:window
   onpopstate={() => {
     const code = location.pathname.split("/").pop()
-    if (code === "turing" || !code) rule = parseTMRule(randomChoice(machines))
-    else rule = parseTMRule(code)
+    if (code === "turing" || !code) {
+      rule = parseTMRule(randomChoice(machines))
+    } else rule = parseTMRule(code)
   }}
 /><svelte:head
   ><title>{code.length === 0 ? "" : `${code} - `}Turing Machine Visualizer - Overview</title>
@@ -65,11 +66,10 @@
       const parsed = parseTMRule(code)
       if (parsed.length === 0) {
         e.currentTarget.setCustomValidity("Invalid code")
-        e.currentTarget.reportValidity()
       } else {
-        rule = parsed
         e.currentTarget.setCustomValidity("")
-        pushState(`/turing/${code}`, {})
+        rule = parsed
+        goto(`/turing/${code}`, { keepFocus: true })
       }
     }}
   />
@@ -78,7 +78,7 @@
     onclick={() => {
       const code = randomChoice(machines)
       rule = parseTMRule(code)
-      pushState(`/turing/${code}`, {})
+      goto(`/turing/${code}`, { keepFocus: true })
     }}>Random</Button
   >
   <Button variant="outline" href="/turing/explore/{code}" class="ml-4">Explore</Button>
@@ -95,7 +95,7 @@
   <Input type="number" id="quality" min={1} class="w-20" autocomplete="off" bind:value={quality} />
 </div>
 <div class="mt-3 self-center">
-  <Overview {rule} {width} {height} bind:numSteps {quality} {debug} />
+  <Overview {rule} {width} {height} bind:numSteps {quality} interactive {debug} />
 </div>
 <div class="self-center">
   <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;

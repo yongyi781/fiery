@@ -45,6 +45,17 @@ export class Tape {
   leftEdge = 0
   rightEdge = 0
 
+  constructor(t?: Tape) {
+    if (t != null) {
+      this.data = t.data
+      this.head = t.head
+      this.state = t.state
+      this.offset = t.offset
+      this.leftEdge = t.leftEdge
+      this.rightEdge = t.rightEdge
+    }
+  }
+
   at(i: number) {
     return this.data[i + this.offset] ?? 0
   }
@@ -144,19 +155,29 @@ export function formatTMRule(rule: TMRule) {
     .join("_")
 }
 
+export function rulesEqual(a: TMRule, b: TMRule) {
+  return formatTMRule(a) === formatTMRule(b)
+}
+
 /** A Turing machine. */
 export class TuringMachine {
   rule: TMRule
   tape: Tape
   steps: number
-  private snapshots: Tape[]
-  private snapshotFrequency: number
+  snapshots: Tape[]
+  snapshotFrequency: number
 
-  constructor(rule: TMRule, tape: Tape = new Tape(), steps = 0, snapshotFrequency = 1 << 16) {
+  constructor(
+    rule: TMRule,
+    tape: Tape = new Tape(),
+    steps = 0,
+    snapshots: Tape[] = [tape.clone()],
+    snapshotFrequency = 1 << 16
+  ) {
     this.rule = rule
     this.tape = tape
     this.steps = steps
-    this.snapshots = [tape.clone()]
+    this.snapshots = snapshots
     this.snapshotFrequency = snapshotFrequency
   }
 

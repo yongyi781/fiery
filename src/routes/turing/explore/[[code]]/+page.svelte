@@ -1,18 +1,18 @@
 <script lang="ts">
-  import { pushState } from "$app/navigation"
+  import { dev } from "$app/environment"
+  import { goto } from "$app/navigation"
   import { page } from "$app/stores"
   import { Button } from "$lib/components/ui/button"
   import { Input } from "$lib/components/ui/input"
   import { Label } from "$lib/components/ui/label"
   import { Switch } from "$lib/components/ui/switch"
-  import { onMount } from "svelte"
   import { randomChoice } from "$lib/utils"
+  import { onMount } from "svelte"
+  import Content from "../../Content.svelte"
   import Editor from "../../Editor.svelte"
   import Explore from "../../Explore.svelte"
   import machines from "../../machines"
   import { formatTMRule, parseTMRule, type TMRule } from "../../turing"
-  import Content from "../../Content.svelte"
-  import { dev } from "$app/environment"
 
   const { data } = $props()
 
@@ -69,11 +69,10 @@
       const parsed = parseTMRule(code)
       if (parsed.length === 0) {
         e.currentTarget.setCustomValidity("Invalid code")
-        e.currentTarget.reportValidity()
       } else {
         rule = parsed
         e.currentTarget.setCustomValidity("")
-        pushState(`/turing/explore/${code}`, {})
+        goto(`/turing/explore/${code}`, { keepFocus: true })
       }
     }}
   />
@@ -82,7 +81,7 @@
     onclick={() => {
       const code = randomChoice(machines)
       rule = parseTMRule(code)
-      pushState(`/turing/explore/${code}`, {})
+      goto(`/turing/explore/${code}`, { keepFocus: true })
     }}>Random</Button
   >
   <Button variant="outline" href="/turing/{code}" class="ml-4">Overview</Button>

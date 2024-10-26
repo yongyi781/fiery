@@ -32,7 +32,7 @@
       <ol class="flex flex-row flex-wrap gap-1">
         {#each validInputs as s, i (s)}
           <li class="ml-4 text-center">
-            <a href="/turing/{formatTMRule(parseTMRule(s))}">
+            <a href="/turing/{s}">
               <Overview rule={parseTMRule(s)} width={128} height={128} />
               <div class="bg-slate-200 dark:bg-slate-900">{i + 1}</div>
             </a>
