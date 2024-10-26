@@ -20,8 +20,8 @@
   const initStartStep = Number($page.url.searchParams.get("t")).valueOf() || 0
   let initCode = data.code
   let code = $state(initCode)
-  let rule: TMRule = $state(parseTMRule(initCode))
-  let machine: TuringMachine = $state(new TuringMachine())
+  let rule = $state(parseTMRule(initCode))
+  let machine = $state(new TuringMachine())
   let scale = $state(Number($page.url.searchParams.get("scale")).valueOf() || 2)
   let width = $state(Number($page.url.searchParams.get("w")).valueOf() || 1024)
   let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 768)
@@ -37,12 +37,14 @@
   onMount(() => {
     $effect(() => {
       if (!rulesEqual(rule, machine.rule)) {
-        const m = new TuringMachine(rule)
+        console.log("New rule")
+        const m = new TuringMachine($state.snapshot(rule))
         if (turingMachineCache.value != null && rulesEqual(m.rule, turingMachineCache.value.rule)) {
           m.snapshots = turingMachineCache.value.snapshots.map((tape) => new Tape(tape))
           m.snapshotFrequency = turingMachineCache.value.snapshotFrequency
         }
         machine = m
+        goto(`/turing/explore/${code}`, { keepFocus: true, replaceState: true })
       }
     })
 

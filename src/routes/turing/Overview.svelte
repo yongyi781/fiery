@@ -1,9 +1,9 @@
 <script lang="ts">
   import { goto } from "$app/navigation"
-  import { cn } from "$lib/utils"
-  import { onMount, setContext, untrack } from "svelte"
-  import { formatTMRule, getTmSymbolColor, rulesEqual, Tape, TuringMachine } from "./turing"
   import { turingMachineCache } from "$lib/turing-machine-cache.svelte"
+  import { cn } from "$lib/utils"
+  import { onMount, untrack } from "svelte"
+  import { formatTMRule, getTmSymbolColor, rulesEqual, Tape, TuringMachine } from "./turing"
 
   interface Props {
     machine: TuringMachine
@@ -62,7 +62,7 @@
   }
 
   function renderImageData() {
-    if (ctx == null) return
+    if (ctx == null || m.rule.length === 0) return
     const now = performance.now()
     imageData = new ImageData(width, height)
     // Get tape size first
@@ -109,9 +109,7 @@
   function renderCanvas() {
     if (canvas == null || ctx == null) return
 
-    ctx.imageSmoothingEnabled = false
-    ctx.globalCompositeOperation = "copy"
-    ctx.putImageData(imageData, 0, 0)
+    if (imageData != null) ctx.putImageData(imageData, 0, 0)
 
     if (analyzeMode && mouseOver) {
       ctx.globalCompositeOperation = "source-over"

@@ -5,13 +5,14 @@
   import { Button } from "$lib/components/ui/button"
   import { Input } from "$lib/components/ui/input"
   import { Label } from "$lib/components/ui/label"
+  import { turingMachineCache } from "$lib/turing-machine-cache.svelte"
   import { randomChoice } from "$lib/utils"
   import { onMount } from "svelte"
   import Content from "../Content.svelte"
   import Editor from "../Editor.svelte"
   import machines from "../machines"
   import Overview from "../Overview.svelte"
-  import { formatTMRule, parseTMRule, rulesEqual, TuringMachine, type TMRule } from "../turing"
+  import { formatTMRule, parseTMRule, rulesEqual, Tape, TuringMachine } from "../turing"
 
   let { data } = $props()
 
@@ -19,17 +20,31 @@
   const initNumSteps = Number($page.url.searchParams.get("n")).valueOf() || 65536
   let initCode = data.code ?? ""
   let code = $state(initCode)
-  let rule: TMRule = $state(parseTMRule(initCode))
+  let rule = $state(parseTMRule(initCode))
+  let machine = $state(new TuringMachine())
   let width = $state(initWidth)
   let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 512)
   let numSteps = $state(initNumSteps)
   let quality = $state(Number($page.url.searchParams.get("q")).valueOf() || 1)
   let debug = $page.url.searchParams.has("debug") || dev
 
+  $effect(() => {
+    if (rule.length > 0) code = formatTMRule(rule)
+  })
+
   onMount(() => {
     $effect(() => {
-      if (rule.length > 0) code = formatTMRule(rule)
+      if (!rulesEqual(rule, machine.rule)) {
+        const m = new TuringMachine($state.snapshot(rule))
+        if (turingMachineCache.value != null && rulesEqual(m.rule, turingMachineCache.value.rule)) {
+          m.snapshots = turingMachineCache.value.snapshots.map((tape) => new Tape(tape))
+          m.snapshotFrequency = turingMachineCache.value.snapshotFrequency
+        }
+        machine = m
+        goto(`/turing/${code}`, { keepFocus: true, replaceState: true })
+      }
     })
+
     document.querySelector("canvas")?.focus()
   })
 </script>
@@ -40,6 +55,14 @@
     if (code === "turing" || !code) {
       rule = parseTMRule(randomChoice(machines))
     } else rule = parseTMRule(code)
+  }}
+  onkeydown={(e) => {
+    if (e.key === "F" && e.altKey) {
+      e.preventDefault()
+      const codeInput = document.querySelector("#code") as HTMLInputElement
+      codeInput.setSelectionRange(0, codeInput.value.length)
+      codeInput.focus()
+    }
   }}
 /><svelte:head
   ><title>{code.length === 0 ? "" : `${code} - `}Turing Machine Visualizer - Overview</title>
@@ -95,7 +118,7 @@
   <Input type="number" id="quality" min={1} class="w-20" autocomplete="off" bind:value={quality} />
 </div>
 <div class="mt-3 self-center">
-  <Overview machine={new TuringMachine(rule)} {width} {height} bind:numSteps {quality} interactive {debug} />
+  <Overview {machine} {width} {height} bind:numSteps {quality} interactive {debug} />
 </div>
 <div class="self-center">
   <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;
