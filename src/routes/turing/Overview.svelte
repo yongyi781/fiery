@@ -1,9 +1,8 @@
 <script lang="ts">
   import { goto } from "$app/navigation"
-  import { page } from "$app/stores"
-  import { onMount, untrack } from "svelte"
-  import { formatTMRule, getTmSymbolColor, rulesEqual, Tape, TuringMachine, type TMRule } from "./turing"
   import { cn } from "$lib/utils"
+  import { onMount, untrack } from "svelte"
+  import { formatTMRule, getTmSymbolColor, rulesEqual, Tape, TuringMachine } from "./turing"
 
   interface Props {
     machine: TuringMachine
@@ -27,8 +26,7 @@
 
   let canvas: HTMLCanvasElement
   let ctx: CanvasRenderingContext2D | null
-  let offCanvas: OffscreenCanvas
-  let offCtx: OffscreenCanvasRenderingContext2D | null
+  let imageData: ImageData
   let m = new TuringMachine() // Non-proxy version.
   let renderTime = $state(0)
   let analyzeMode = $state(false)
@@ -62,14 +60,10 @@
     return Math.round(res / (end - start))
   }
 
-  function renderOffscreenCanvas() {
+  function renderImageData() {
     if (ctx == null) return
     const now = performance.now()
-    offCanvas.width = width
-    offCanvas.height = height
-    offCtx = offCanvas.getContext("2d")!
-    offCtx.imageSmoothingEnabled = false
-    offCtx.globalCompositeOperation = "copy"
+    imageData = new ImageData(width, height)
     // Get tape size first
     m.seek(numSteps)
     const xmax = Math.max(Math.floor(width / 2), -m.tape.leftEdge, m.tape.rightEdge)
@@ -78,7 +72,6 @@
     const w = width
     const h = height
     const q = quality
-    const imageData = offCtx.createImageData(width, height)
     const nSymbols = m.rule[0].length
     const windowHeight = numSteps / height
     const windowWidth = (2 * xmax) / width
@@ -109,16 +102,15 @@
         }
       }
     }
-    offCtx.putImageData(imageData, 0, 0)
     renderTime = performance.now() - now
   }
 
-  function renderMainCanvas() {
+  function renderCanvas() {
     if (canvas == null || ctx == null) return
 
     ctx.imageSmoothingEnabled = false
     ctx.globalCompositeOperation = "copy"
-    ctx.drawImage(offCanvas, 0, 0, canvas.width, canvas.height)
+    ctx.putImageData(imageData, 0, 0)
 
     if (analyzeMode && mouseOver) {
       ctx.globalCompositeOperation = "source-over"
@@ -137,17 +129,15 @@
 
   onMount(() => {
     ctx = canvas.getContext("2d")
-    offCanvas = new OffscreenCanvas(0, 0)
-    offCtx = offCanvas.getContext("2d")
 
     $effect(() => {
       if (!rulesEqual(m.rule, machine.rule)) m = machine.clone()
-      renderOffscreenCanvas()
-      untrack(() => renderMainCanvas())
+      renderImageData()
+      untrack(() => renderCanvas())
     })
 
     $effect(() => {
-      renderMainCanvas()
+      renderCanvas()
     })
   })
 </script>
