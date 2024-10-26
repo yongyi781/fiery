@@ -11,7 +11,7 @@
   import Editor from "../Editor.svelte"
   import machines from "../machines"
   import Overview from "../Overview.svelte"
-  import { formatTMRule, parseTMRule, TuringMachine, type TMRule } from "../turing"
+  import { formatTMRule, parseTMRule, rulesEqual, TuringMachine, type TMRule } from "../turing"
 
   let { data } = $props()
 
@@ -68,8 +68,8 @@
         e.currentTarget.setCustomValidity("Invalid code")
       } else {
         e.currentTarget.setCustomValidity("")
+        if (!rulesEqual(rule, parsed)) goto(`/turing/${code}`, { keepFocus: true })
         rule = parsed
-        goto(`/turing/${code}`, { keepFocus: true })
       }
     }}
   />

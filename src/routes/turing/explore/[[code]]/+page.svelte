@@ -31,7 +31,7 @@
   let debug = $page.url.searchParams.has("debug") || dev
 
   $effect(() => {
-    if (machine.rule.length > 0) code = formatTMRule(machine.rule)
+    if (rule.length > 0) code = formatTMRule(rule)
   })
 
   onMount(() => {
@@ -93,8 +93,8 @@
         e.currentTarget.setCustomValidity("Invalid code")
       } else {
         e.currentTarget.setCustomValidity("")
-        if (!rulesEqual(machine.rule, parsed)) goto(`/turing/explore/${code}`, { keepFocus: true })
-        machine = new TuringMachine(parsed)
+        if (!rulesEqual(rule, parsed)) goto(`/turing/explore/${code}`, { keepFocus: true })
+        rule = parsed
       }
     }}
   />
