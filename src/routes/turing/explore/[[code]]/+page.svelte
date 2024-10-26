@@ -25,7 +25,10 @@
   let scale = $state(Number($page.url.searchParams.get("scale")).valueOf() || 2)
   let width = $state(Number($page.url.searchParams.get("w")).valueOf() || 1024)
   let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 768)
-  let startStep = $state(initStartStep)
+  let position = $state({
+    t: initStartStep,
+    x: 0
+  })
   let animate = $state($page.url.searchParams.has("animate"))
   let animateSpeed = $state(Number($page.url.searchParams.get("animateSpeed")).valueOf() || 1)
   let debug = $page.url.searchParams.has("debug") || dev
@@ -118,9 +121,11 @@
   <Input type="number" id="width" class="w-20" min={1} max={65535} autocomplete="off" bind:value={width} />
   <Label for="height" class="ml-4">Height:</Label>
   <Input type="number" id="height" class="w-20" min={1} max={65535} autocomplete="off" bind:value={height} />
-  <Label for="startStep" class="ml-4">Start step:</Label>
-  <Input type="number" id="startStep" class="w-40" min={0} autocomplete="off" bind:value={startStep} />
-  <Button variant="outline" onclick={() => (startStep = 0)}>Top</Button>
+  <Label for="t" class="ml-4">t =</Label>
+  <Input type="number" id="t" class="w-40" min={0} autocomplete="off" bind:value={position.t} />
+  <Label for="x" class="ml-4">x =</Label>
+  <Input type="number" id="x" class="w-32" min={0} autocomplete="off" bind:value={position.x} />
+  <Button variant="outline" onclick={() => (position.t = 0)}>Top</Button>
   <Switch id="animate" class="ml-4" bind:checked={animate} /><Label for="animate">Animate</Label><Input
     type="number"
     class="w-24"
@@ -129,7 +134,7 @@
   />
 </div>
 <div class="mt-3 self-center">
-  <Explore {machine} bind:scale bind:width bind:height bind:startStep bind:animate bind:animateSpeed {debug} />
+  <Explore {machine} bind:scale bind:width bind:height bind:position bind:animate bind:animateSpeed {debug} />
 </div>
 <div class="self-center">
   <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;

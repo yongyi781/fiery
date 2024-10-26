@@ -15,8 +15,12 @@
     machine: TuringMachine
     width: number
     height: number
+    /** The initial position to explore. */
+    position?: {
+      t: number
+      x: number
+    }
     scale?: number
-    startStep?: number
     animate?: boolean
     animateSpeed?: number
     debug?: boolean
@@ -27,7 +31,10 @@
     scale = $bindable(8),
     width = $bindable(512),
     height = $bindable(512),
-    startStep = $bindable(0),
+    position = $bindable({
+      t: 0,
+      x: 0
+    }),
     animate = $bindable(false),
     animateSpeed = $bindable(1),
     debug = false
@@ -64,19 +71,19 @@
   }
 
   function scroll(dir: number) {
-    startStep = Math.max(0, startStep + Math.round(dir * numSteps()))
+    position.t = Math.max(0, position.t + Math.round(dir * numSteps()))
   }
 
   function renderOffscreenCanvas() {
-    if (ctx == null || offCtx == null || m.rule.length === 0 || scale <= 0 || height <= 0 || startStep < 0) return
+    if (ctx == null || offCtx == null || m.rule.length === 0 || scale <= 0 || height <= 0 || position.t < 0) return
 
     const now = performance.now()
-    m.seek(startStep)
+    m.seek(position.t)
 
     // Run it once to get how wide the canvas should be
     const h = numSteps()
     if (h === 0) return
-    m.seek(startStep + h - 1)
+    m.seek(position.t + h - 1)
     leftEdge = m.tape.leftEdge
     offCanvas.width = m.tape.size
     offCanvas.height = h
@@ -84,7 +91,7 @@
     offCtx.globalCompositeOperation = "copy"
 
     // Now render
-    m.seek(startStep)
+    m.seek(position.t)
     const imageData = offCtx.createImageData(offCanvas.width, h)
     const nSymbols = m.rule[0].length
     const offCanvasWidth = offCanvas.width
@@ -113,7 +120,7 @@
       offCanvas.width === 0 ||
       offCanvas.height === 0 ||
       numSteps() === 0 ||
-      startStep < 0
+      position.t < 0
     )
       return
 
@@ -132,7 +139,7 @@
       ctx.fillRect(0, Math.floor(mouseY / scale) * scale, canvas.width, scale)
 
       const x = Math.floor(mouseX / scale) + leftEdge
-      const t = Math.floor(mouseY / scale) + startStep
+      const t = Math.floor(mouseY / scale) + position.t
       m.seek(t)
 
       mouseOverInfo = {
@@ -145,7 +152,7 @@
   }
 
   function draw() {
-    startStep = Math.max(0, startStep + animateSpeed)
+    position.t = Math.max(0, position.t + animateSpeed)
     if (animate) requestAnimationFrame(draw)
   }
 
@@ -253,7 +260,7 @@
         case "0":
           if (!e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
             e.preventDefault()
-            startStep = 0
+            position.t = 0
           }
           break
         case "Enter":
@@ -276,7 +283,7 @@
           if (!e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
             e.preventDefault()
             const baseSeek = 10
-            startStep = baseSeek * 10 ** (e.key.charCodeAt(0) - "1".charCodeAt(0))
+            position.t = baseSeek * 10 ** (e.key.charCodeAt(0) - "1".charCodeAt(0))
           }
           break
       }
