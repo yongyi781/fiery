@@ -3,7 +3,7 @@
   import { Textarea } from "$lib/components/ui/textarea"
   import { localStore } from "$lib/localStore.svelte"
   import Overview from "../Overview.svelte"
-  import { formatTMRule, parseTMRule } from "../turing"
+  import { parseTMRule, TuringMachine } from "../turing"
 
   let input = localStore("batch-turing-input", "")
   let validInputs = $derived(new Set(input.value.split("\n").filter((s) => parseTMRule(s).length > 0)))
@@ -33,7 +33,7 @@
         {#each validInputs as s, i (s)}
           <li class="ml-4 text-center">
             <a href="/turing/{s}">
-              <Overview rule={parseTMRule(s)} width={128} height={128} />
+              <Overview machine={new TuringMachine(parseTMRule(s))} width={128} height={128} />
               <div class="bg-slate-200 dark:bg-slate-900">{i + 1}</div>
             </a>
           </li>

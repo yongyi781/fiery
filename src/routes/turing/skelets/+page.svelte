@@ -1,16 +1,16 @@
 <script lang="ts">
+  import { page } from "$app/stores"
   import { skelets } from "../machines"
   import Overview from "../Overview.svelte"
-  import { parseTMRule } from "../turing"
-  import { page } from "$app/stores"
+  import { parseTMRule, TuringMachine } from "../turing"
 </script>
 
 <div class="flex flex-wrap gap-1">
-  {#each skelets as skelet, i}
+  {#each skelets as r, i}
     <div class="border border-slate-800 text-center">
-      <a href="/turing/{skelet}">
+      <a href="/turing/{r}">
         <Overview
-          rule={parseTMRule(skelet)}
+          machine={new TuringMachine(parseTMRule(r))}
           width={128}
           height={128}
           numSteps={Number($page.url.searchParams.get("n")).valueOf() || 65536}

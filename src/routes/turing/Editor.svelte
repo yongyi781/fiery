@@ -54,7 +54,6 @@
             value={tr.toState === -1 ? "-" : String.fromCharCode(tr.toState + 65)}
             class="w-5 border border-blue-200 bg-transparent py-1 text-center outline-none dark:border-blue-800"
             style="color: {getTmStateColorCss(tr.toState)};"
-            disabled={i === 0 && j === 0}
             maxlength="1"
             autocomplete="off"
             spellcheck="false"

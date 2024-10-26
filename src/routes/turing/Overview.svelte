@@ -3,9 +3,10 @@
   import { page } from "$app/stores"
   import { onMount, untrack } from "svelte"
   import { formatTMRule, getTmSymbolColor, rulesEqual, Tape, TuringMachine, type TMRule } from "./turing"
+  import { cn } from "$lib/utils"
 
   interface Props {
-    rule: TMRule
+    machine: TuringMachine
     width: number
     height: number
     numSteps?: number
@@ -15,7 +16,7 @@
   }
 
   let {
-    rule,
+    machine,
     width,
     height,
     numSteps = $bindable(16384),
@@ -28,7 +29,7 @@
   let ctx: CanvasRenderingContext2D | null
   let offCanvas: OffscreenCanvas
   let offCtx: OffscreenCanvasRenderingContext2D | null
-  let m = new TuringMachine($state.snapshot(rule))
+  let m = new TuringMachine() // Non-proxy version.
   let renderTime = $state(0)
   let analyzeMode = $state(false)
   let mouseOver = $state(false)
@@ -78,7 +79,7 @@
     const h = height
     const q = quality
     const imageData = offCtx.createImageData(width, height)
-    const nSymbols = rule[0].length
+    const nSymbols = m.rule[0].length
     const windowHeight = numSteps / height
     const windowWidth = (2 * xmax) / width
     for (let i = 0; i < h; ++i) {
@@ -138,14 +139,9 @@
     ctx = canvas.getContext("2d")
     offCanvas = new OffscreenCanvas(0, 0)
     offCtx = offCanvas.getContext("2d")
+
     $effect(() => {
-      m = new TuringMachine($state.snapshot(rule)) // Crucial to use $state.snapshot for better performance
-      untrack(() => {
-        renderOffscreenCanvas()
-        renderMainCanvas()
-      })
-    })
-    $effect(() => {
+      if (!rulesEqual(m.rule, machine.rule)) m = machine.clone()
       renderOffscreenCanvas()
       untrack(() => renderMainCanvas())
     })
@@ -158,7 +154,7 @@
 
 <canvas
   id="canvas"
-  class="mx-auto select-none border"
+  class={cn("mx-auto select-none border", analyzeMode ? "border border-green-500" : "")}
   {width}
   {height}
   tabindex="0"
@@ -226,7 +222,7 @@
     }
   }}
   ondblclick={(e) => {
-    goto(`/turing/explore/${formatTMRule(rule)}?t=${mouseOverInfo?.t}`, { state: { tm: m } })
+    goto(`/turing/explore/${formatTMRule(m.rule)}?t=${mouseOverInfo?.t}`, { state: { tm: m } })
   }}
 ></canvas>
 {#if debug}

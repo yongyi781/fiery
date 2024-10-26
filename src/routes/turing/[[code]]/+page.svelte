@@ -11,7 +11,7 @@
   import Editor from "../Editor.svelte"
   import machines from "../machines"
   import Overview from "../Overview.svelte"
-  import { formatTMRule, parseTMRule, type TMRule } from "../turing"
+  import { formatTMRule, parseTMRule, TuringMachine, type TMRule } from "../turing"
 
   let { data } = $props()
 
@@ -95,7 +95,7 @@
   <Input type="number" id="quality" min={1} class="w-20" autocomplete="off" bind:value={quality} />
 </div>
 <div class="mt-3 self-center">
-  <Overview {rule} {width} {height} bind:numSteps {quality} interactive {debug} />
+  <Overview machine={new TuringMachine(rule)} {width} {height} bind:numSteps {quality} interactive {debug} />
 </div>
 <div class="self-center">
   <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;

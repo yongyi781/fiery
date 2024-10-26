@@ -1,22 +1,18 @@
 <script lang="ts">
+  import { cn } from "$lib/utils"
   import { onMount, untrack } from "svelte"
   import {
-    formatTMRule,
     getTmStateColor,
     getTmStateColorCss,
     getTmSymbolColor,
     rulesEqual,
     Tape,
     TuringMachine,
-    type TMRule,
     type Transition
   } from "./turing"
-  import { page } from "$app/stores"
-  import { preventDefault } from "svelte/legacy"
-  import { cn } from "$lib/utils"
 
   interface Props {
-    rule: TMRule
+    machine: TuringMachine
     width: number
     height: number
     scale?: number
@@ -27,7 +23,7 @@
   }
 
   let {
-    rule,
+    machine,
     scale = $bindable(8),
     width = $bindable(512),
     height = $bindable(512),
@@ -41,7 +37,7 @@
   let ctx: CanvasRenderingContext2D | null
   let offCanvas: OffscreenCanvas
   let offCtx: OffscreenCanvasRenderingContext2D | null
-  let m: TuringMachine
+  let m = new TuringMachine() // Non-proxy version.
   let renderTime = $state(0)
   let analyzeMode = $state(false)
   let mouseOver = $state(false)
@@ -72,7 +68,7 @@
   }
 
   function renderOffscreenCanvas() {
-    if (ctx == null || offCtx == null || rule.length === 0 || scale <= 0 || height <= 0 || startStep < 0) return
+    if (ctx == null || offCtx == null || m.rule.length === 0 || scale <= 0 || height <= 0 || startStep < 0) return
 
     const now = performance.now()
     m.seek(startStep)
@@ -90,7 +86,7 @@
     // Now render
     m.seek(startStep)
     const imageData = offCtx.createImageData(offCanvas.width, h)
-    const nSymbols = rule[0].length
+    const nSymbols = m.rule[0].length
     const offCanvasWidth = offCanvas.width
     for (let t = 0; t < h; ++t) {
       for (let x = m.tape.leftEdge; x <= m.tape.rightEdge; ++x) {
@@ -111,7 +107,15 @@
   }
 
   function renderMainCanvas() {
-    if (canvas == null || ctx == null || numSteps() === 0 || startStep < 0) return
+    if (
+      canvas == null ||
+      ctx == null ||
+      offCanvas.width === 0 ||
+      offCanvas.height === 0 ||
+      numSteps() === 0 ||
+      startStep < 0
+    )
+      return
 
     canvas.width = offCanvas.width * scale
     canvas.height = offCanvas.height * scale
@@ -149,9 +153,9 @@
     mouseX = e.offsetX
     mouseY = e.offsetY
 
-    const left = Math.min(e.pageX + 15, visualViewport?.width! - tooltip.clientWidth - 12)
+    const left = Math.min(e.x + 15, visualViewport?.width! - tooltip.clientWidth - 12)
     tooltip.style.left = `${left}px`
-    tooltip.style.top = `${e.pageY + 15}px`
+    tooltip.style.top = `${e.y + 15}px`
   }
 
   onMount(() => {
@@ -160,34 +164,17 @@
     offCtx = offCanvas.getContext("2d")
 
     $effect(() => {
-      const u = $page.state.tm
-      if (u != null && rulesEqual(u.rule, rule)) {
-        // Svelte 5 bug: when navigating back and forth, $page.state loses its prototype.
-        m = new TuringMachine(
-          u.rule,
-          new Tape(u.tape),
-          u.steps,
-          u.snapshots.map((t) => new Tape(t)),
-          u.snapshotFrequency
-        )
-      } else m = new TuringMachine($state.snapshot(rule)) // Crucial to use $state.snapshot for better performance
-      untrack(() => {
-        renderOffscreenCanvas()
-        renderMainCanvas()
-      })
-    })
-
-    $effect(() => {
+      if (!rulesEqual(m.rule, machine.rule)) m = machine.clone()
       renderOffscreenCanvas()
       untrack(() => renderMainCanvas())
     })
 
     $effect(() => {
-      if (animate) requestAnimationFrame(draw)
+      renderMainCanvas()
     })
 
     $effect(() => {
-      renderMainCanvas()
+      if (animate) requestAnimationFrame(draw)
     })
   })
 </script>
@@ -195,7 +182,7 @@
 <div class="overflow-auto" style="max-width: {width + 2}px;">
   <canvas
     id="canvas"
-    class={cn("mx-auto select-none border", analyzeMode ? "focus:ring-green-500" : "")}
+    class={cn("mx-auto select-none border", analyzeMode ? "border-green-500" : "")}
     width="0"
     height={untrack(() => height)}
     tabindex="0"

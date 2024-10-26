@@ -159,7 +159,6 @@ export function rulesEqual(a: TMRule, b: TMRule) {
   return formatTMRule(a) === formatTMRule(b)
 }
 
-/** A Turing machine. */
 export class TuringMachine {
   rule: TMRule
   tape: Tape
@@ -168,7 +167,7 @@ export class TuringMachine {
   snapshotFrequency: number
 
   constructor(
-    rule: TMRule,
+    rule: TMRule = [],
     tape: Tape = new Tape(),
     steps = 0,
     snapshots: Tape[] = [tape.clone()],
@@ -214,9 +213,14 @@ export class TuringMachine {
     while (this.steps < steps) if (!this.step()) break
   }
 
+  /** Clones the Turing machine. This doesn't clone the snapshots. */
   clone() {
-    const m = new TuringMachine(this.rule, this.tape.clone(), this.steps)
-    m.snapshots = this.snapshots
-    return m
+    return new TuringMachine(
+      this.rule.map((row) => row.map((tr) => ({ ...tr }))),
+      this.tape.clone(),
+      this.steps,
+      this.snapshots,
+      this.snapshotFrequency
+    )
   }
 }

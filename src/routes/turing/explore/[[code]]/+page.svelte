@@ -12,7 +12,7 @@
   import Editor from "../../Editor.svelte"
   import Explore from "../../Explore.svelte"
   import machines from "../../machines"
-  import { formatTMRule, parseTMRule, type TMRule } from "../../turing"
+  import { formatTMRule, parseTMRule, rulesEqual, Tape, TuringMachine, type TMRule } from "../../turing"
 
   const { data } = $props()
 
@@ -20,6 +20,7 @@
   let initCode = data.code
   let code = $state(initCode)
   let rule: TMRule = $state(parseTMRule(initCode))
+  let machine: TuringMachine = $state(new TuringMachine())
   let scale = $state(Number($page.url.searchParams.get("scale")).valueOf() || 2)
   let width = $state(Number($page.url.searchParams.get("w")).valueOf() || 1024)
   let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 768)
@@ -28,10 +29,22 @@
   let animateSpeed = $state(Number($page.url.searchParams.get("animateSpeed")).valueOf() || 1)
   let debug = $page.url.searchParams.has("debug") || dev
 
+  $effect(() => {
+    if (machine.rule.length > 0) code = formatTMRule(machine.rule)
+  })
+
   onMount(() => {
     $effect(() => {
-      if (rule.length > 0) code = formatTMRule(rule)
+      if (!rulesEqual(rule, machine.rule)) {
+        const m = new TuringMachine(rule)
+        if ($page.state.tm != null && rulesEqual($page.state.tm.rule, rule)) {
+          m.snapshots = $page.state.tm.snapshots.map((tape) => new Tape(tape))
+          m.snapshotFrequency = $page.state.tm.snapshotFrequency
+        }
+        machine = m
+      }
     })
+
     document.querySelector("canvas")?.focus()
   })
 </script>
@@ -41,6 +54,14 @@
     const code = location.pathname.split("/").pop()
     if (code === "Explore" || !code) rule = parseTMRule(randomChoice(machines))
     else rule = parseTMRule(code)
+  }}
+  onkeydown={(e) => {
+    if (e.key === "F" && e.altKey) {
+      e.preventDefault()
+      const codeInput = document.querySelector("#code") as HTMLInputElement
+      codeInput.setSelectionRange(0, codeInput.value.length)
+      codeInput.focus()
+    }
   }}
 />
 <svelte:head
@@ -70,9 +91,9 @@
       if (parsed.length === 0) {
         e.currentTarget.setCustomValidity("Invalid code")
       } else {
-        rule = parsed
         e.currentTarget.setCustomValidity("")
-        goto(`/turing/explore/${code}`, { keepFocus: true })
+        if (!rulesEqual(machine.rule, parsed)) goto(`/turing/explore/${code}`, { keepFocus: true })
+        machine = new TuringMachine(parsed)
       }
     }}
   />
@@ -105,7 +126,7 @@
   />
 </div>
 <div class="mt-3 self-center">
-  <Explore {rule} bind:scale bind:width bind:height bind:startStep bind:animate bind:animateSpeed {debug} />
+  <Explore {machine} bind:scale bind:width bind:height bind:startStep bind:animate bind:animateSpeed {debug} />
 </div>
 <div class="self-center">
   <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;
