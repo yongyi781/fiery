@@ -28,6 +28,7 @@
 
   let canvas: HTMLCanvasElement
   let buffer: ArrayBufferLike
+  let worker: Worker
   let ctx: CanvasRenderingContext2D | null
   let m = new TuringMachine() // Non-proxy version.
   let renderTime = $state(0)
@@ -35,28 +36,12 @@
   let mouseOver = $state(false)
   let mouseY = $state(0)
   let tooltip: HTMLDivElement
-  let mouseOverInfo = $derived.by(() => {
-    const t = Math.round((mouseY / height) * numSteps)
-    if (t < 0 || t >= numSteps) return null
-    m.seek(t)
-    return {
-      t,
-      tape: m.tape.clone(),
-      transition: m.peek()
-    }
-  })
+  let mouseOverInfo: any = $state({})
 
   function renderOffscreenCanvas() {
-    const w = new Worker(workerUrl, { type: "module" })
-    w.onmessage = (e) => {
-      ctx = canvas.getContext("2d")!
-      renderTime = e.data.elapsed
-      buffer = e.data.buffer
-      renderMainCanvas()
-    }
     // Make buffer from snapshots to transfer
-    w.postMessage({
-      rule: m.rule,
+    worker.postMessage({
+      type: "render",
       width,
       height,
       numSteps,
@@ -90,6 +75,24 @@
 
   onMount(() => {
     ctx = canvas.getContext("2d")
+    worker = new Worker(workerUrl, { type: "module" })
+    worker.onmessage = (e) => {
+      switch (e.data.type) {
+        case "render":
+          renderTime = e.data.elapsed
+          buffer = e.data.buffer
+          renderMainCanvas()
+          break
+        case "seek":
+          mouseOverInfo = {
+            t: e.data.t,
+            tape: new Tape(e.data.tape),
+            transition: e.data.transition
+          }
+          break
+      }
+    }
+    worker.postMessage({ type: "init", rule: formatTMRule(machine.rule), width, height, numSteps, quality })
 
     $effect(() => {
       if (!rulesEqual(m.rule, machine.rule)) m = machine.clone()
@@ -170,6 +173,9 @@
   onmousemove={(e) => {
     if (interactive) {
       updateMouse(e)
+      const t = Math.round((mouseY / height) * numSteps)
+      if (t < 0 || t >= numSteps) return
+      worker.postMessage({ type: "seek", t })
     }
   }}
   ondblclick={(e) => {

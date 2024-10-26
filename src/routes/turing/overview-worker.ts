@@ -1,4 +1,6 @@
-import { getTmSymbolColor, Tape, TuringMachine, type TMRule } from "./turing"
+import { getTmSymbolColor, parseTMRule, Tape, TuringMachine } from "./turing"
+
+let m: TuringMachine
 
 function getTapes(m: TuringMachine, start: number, end: number, n: number) {
   const res: Tape[] = []
@@ -16,21 +18,21 @@ function getColor(tape: Tape, start: number, end: number, nSymbols: number) {
   return Math.round(res / (end - start))
 }
 
-self.onmessage = (event: MessageEvent) => {
-  const {
-    rule,
-    width,
-    height,
-    numSteps,
-    quality
-  }: {
-    rule: TMRule
-    width: number
-    height: number
-    numSteps: number
-    quality: number
-  } = event.data
-  const m = new TuringMachine(rule)
+function init({ rule }: { rule: string }) {
+  m = new TuringMachine(parseTMRule(rule))
+}
+
+function render({
+  width,
+  height,
+  numSteps,
+  quality
+}: {
+  width: number
+  height: number
+  numSteps: number
+  quality: number
+}) {
   const now = performance.now()
   // Get tape size first
   m.seek(numSteps)
@@ -71,7 +73,25 @@ self.onmessage = (event: MessageEvent) => {
       }
     }
   }
-  m.snapshots = []
   const elapsed = performance.now() - now
-  self.postMessage({ buffer: imageData.data.buffer, elapsed }, { transfer: [imageData.data.buffer] })
+  self.postMessage({ type: "render", buffer: imageData.data.buffer, elapsed }, { transfer: [imageData.data.buffer] })
+}
+
+function seek({ t }: { t: number }) {
+  m.seek(t)
+  self.postMessage({ type: "seek", t, tape: m.tape, transition: m.peek() })
+}
+
+self.onmessage = (e: MessageEvent) => {
+  switch (e.data.type) {
+    case "init":
+      init(e.data)
+      break
+    case "render":
+      render(e.data)
+      break
+    case "seek":
+      seek(e.data)
+      break
+  }
 }
