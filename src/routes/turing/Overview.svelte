@@ -4,6 +4,7 @@
   import { onMount, untrack } from "svelte"
   import { formatTMRule, getTmSymbolColor, rulesEqual, Tape, TuringMachine, type TMRule } from "./turing"
   import { cn } from "$lib/utils"
+  import workerUrl from "./overview-worker?url"
 
   interface Props {
     machine: TuringMachine
@@ -26,9 +27,8 @@
   }: Props = $props()
 
   let canvas: HTMLCanvasElement
+  let buffer: ArrayBufferLike
   let ctx: CanvasRenderingContext2D | null
-  let offCanvas: OffscreenCanvas
-  let offCtx: OffscreenCanvasRenderingContext2D | null
   let m = new TuringMachine() // Non-proxy version.
   let renderTime = $state(0)
   let analyzeMode = $state(false)
@@ -46,79 +46,32 @@
     }
   })
 
-  function getTapes(start: number, end: number, n: number) {
-    const res: Tape[] = []
-    for (let i = 0; i < n; ++i) {
-      const t = i / n
-      m.seek(Math.round((1 - t) * start + t * end))
-      res.push(m.tape.clone())
-    }
-    return res
-  }
-
-  function getColor(tape: Tape, start: number, end: number, nSymbols: number) {
-    let res = 0
-    for (let i = start; i < end; ++i) res += getTmSymbolColor(tape.at(i), nSymbols)
-    return Math.round(res / (end - start))
-  }
-
   function renderOffscreenCanvas() {
-    if (ctx == null) return
-    const now = performance.now()
-    offCanvas.width = width
-    offCanvas.height = height
-    offCtx = offCanvas.getContext("2d")!
-    offCtx.imageSmoothingEnabled = false
-    offCtx.globalCompositeOperation = "copy"
-    // Get tape size first
-    m.seek(numSteps)
-    const xmax = Math.max(Math.floor(width / 2), -m.tape.leftEdge, m.tape.rightEdge)
-    m.seek(0)
-    // Non-svelte snapshots for performance
-    const w = width
-    const h = height
-    const q = quality
-    const imageData = offCtx.createImageData(width, height)
-    const nSymbols = m.rule[0].length
-    const windowHeight = numSteps / height
-    const windowWidth = (2 * xmax) / width
-    for (let i = 0; i < h; ++i) {
-      const lt = Math.floor(i * windowHeight)
-      const ht = Math.floor((i + 1) * windowHeight)
-      const tapes = getTapes(lt, ht, q)
-      if (m.halted) break
-      if (xmax === Math.floor(w / 2)) {
-        // 1-1
-        for (let x = m.tape.leftEdge; x <= m.tape.rightEdge; ++x) {
-          const index = 4 * (i * w + x + xmax)
-          const color = tapes.map((tape) => getTmSymbolColor(tape.at(x), nSymbols)).reduce((a, b) => a + b, 0) / q
-          for (let k = 0; k < 3; ++k) imageData.data[index + k] = color
-          imageData.data[index + 3] = 255
-        }
-      } else {
-        // Downsample
-        for (let j = 0; j < w; ++j) {
-          const lx = Math.floor((j - Math.floor(w / 2)) * windowWidth)
-          const hx = Math.floor((j + 1 - Math.floor(w / 2)) * windowWidth)
-
-          if (hx < m.tape.leftEdge || lx > m.tape.rightEdge) continue
-          const color = tapes.map((tape) => getColor(tape, lx, hx, nSymbols)).reduce((a, b) => a + b, 0) / q
-          const index = 4 * (i * w + j)
-          for (let k = 0; k < 3; ++k) imageData.data[index + k] = color
-          imageData.data[index + 3] = 255
-        }
-      }
+    const w = new Worker(workerUrl, { type: "module" })
+    w.onmessage = (e) => {
+      ctx = canvas.getContext("2d")!
+      renderTime = e.data.elapsed
+      buffer = e.data.buffer
+      renderMainCanvas()
     }
-    offCtx.putImageData(imageData, 0, 0)
-    renderTime = performance.now() - now
+    // Make buffer from snapshots to transfer
+    w.postMessage({
+      rule: m.rule,
+      width,
+      height,
+      numSteps,
+      quality
+    })
   }
 
   function renderMainCanvas() {
     if (canvas == null || ctx == null) return
 
-    ctx.imageSmoothingEnabled = false
-    ctx.globalCompositeOperation = "copy"
-    ctx.drawImage(offCanvas, 0, 0, canvas.width, canvas.height)
+    if (buffer != null) {
+      ctx.imageSmoothingEnabled = false
+      ctx.globalCompositeOperation = "copy"
+      ctx.putImageData(new ImageData(new Uint8ClampedArray(buffer), width, height), 0, 0)
+    }
 
     if (analyzeMode && mouseOver) {
       ctx.globalCompositeOperation = "source-over"
@@ -137,8 +90,6 @@
 
   onMount(() => {
     ctx = canvas.getContext("2d")
-    offCanvas = new OffscreenCanvas(0, 0)
-    offCtx = offCanvas.getContext("2d")
 
     $effect(() => {
       if (!rulesEqual(m.rule, machine.rule)) m = machine.clone()
