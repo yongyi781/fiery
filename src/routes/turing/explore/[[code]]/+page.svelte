@@ -21,7 +21,7 @@
   let initCode = data.code
   let code = $state(initCode)
   let rule = $state(parseTMRule(initCode))
-  let machine = $state(new TuringMachine())
+  let machine = $state(new TuringMachine(parseTMRule(initCode)))
   let scale = $state(Number($page.url.searchParams.get("scale")).valueOf() || 2)
   let width = $state(Number($page.url.searchParams.get("w")).valueOf() || 1024)
   let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 768)
@@ -44,7 +44,7 @@
           m.snapshotFrequency = turingMachineCache.value.snapshotFrequency
         }
         machine = m
-        goto(`/turing/explore/${code}`, { keepFocus: true, replaceState: true })
+        goto(`/turing/explore/${code}`, { keepFocus: true })
       }
     })
 
@@ -95,7 +95,6 @@
         e.currentTarget.setCustomValidity("Invalid code")
       } else {
         e.currentTarget.setCustomValidity("")
-        if (!rulesEqual(rule, parsed)) goto(`/turing/explore/${code}`, { keepFocus: true })
         rule = parsed
       }
     }}
@@ -105,7 +104,6 @@
     onclick={() => {
       const code = randomChoice(machines)
       rule = parseTMRule(code)
-      goto(`/turing/explore/${code}`, { keepFocus: true })
     }}>Random</Button
   >
   <Button variant="outline" href="/turing/{code}" class="ml-4">Overview</Button>
