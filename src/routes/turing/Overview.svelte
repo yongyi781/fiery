@@ -123,9 +123,9 @@
   function updateMouse(e: MouseEvent) {
     mouseY = e.offsetY
 
-    const left = Math.min(e.pageX + 15, visualViewport?.width! - tooltip.clientWidth - 12)
+    const left = Math.min(e.x + 15, visualViewport?.width! - tooltip.clientWidth - 12)
     tooltip.style.left = `${left}px`
-    tooltip.style.top = `${e.pageY + 15}px`
+    tooltip.style.top = `${e.y + 15}px`
   }
 
   onMount(() => {
