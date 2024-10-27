@@ -124,7 +124,7 @@
   <Label for="t" class="ml-4">t =</Label>
   <Input type="number" id="t" class="w-40" min={0} autocomplete="off" bind:value={position.t} />
   <Label for="x" class="ml-4">x =</Label>
-  <Input type="number" id="x" class="w-32" min={0} autocomplete="off" bind:value={position.x} />
+  <Input type="number" id="x" class="w-20" min={0} autocomplete="off" bind:value={position.x} />
   <Button variant="outline" onclick={() => (position.t = 0)}>Top</Button>
   <Switch id="animate" class="ml-4" bind:checked={animate} /><Label for="animate">Animate</Label><Input
     type="number"
