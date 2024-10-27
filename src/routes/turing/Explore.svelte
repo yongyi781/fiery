@@ -301,9 +301,10 @@
       case "Home":
       case "0":
       case ")":
+        e.preventDefault()
         if (e.ctrlKey || e.metaKey) scale = 1
+        else if (e.altKey) animateSpeed = 1
         else {
-          e.preventDefault()
           if (e.shiftKey) position.x = 0
           else position.t = 0
         }
@@ -328,8 +329,10 @@
       case "7":
       case "8":
       case "9":
-        if (!e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
-          e.preventDefault()
+        e.preventDefault()
+        if (e.ctrlKey || e.metaKey) scale = Math.round(2 ** (Number(e.key).valueOf() / 2))
+        else if (e.altKey) animateSpeed = 2 ** Number(e.key).valueOf()
+        else {
           const baseSeek = 10
           position.t = baseSeek * 10 ** (e.key.charCodeAt(0) - "1".charCodeAt(0))
         }
