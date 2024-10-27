@@ -134,6 +134,18 @@
 </div>
 <div class="mt-3 self-center">
   <Explore {machineInfo} bind:scale bind:width bind:height bind:position bind:animate bind:animateSpeed {debug} />
+  <Input
+    placeholder="Initial tape, e.g. B110101>111"
+    class="font-mono text-xs invalid:focus:ring-red-500"
+    oninput={(e) => {
+      const t = Tape.parse(e.currentTarget.value)
+      if (t == null) e.currentTarget.setCustomValidity("Invalid tape")
+      else {
+        e.currentTarget.setCustomValidity("")
+        machineInfo.tape = t
+      }
+    }}
+  />
 </div>
 <div class="self-center">
   <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;
