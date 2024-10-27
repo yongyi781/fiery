@@ -135,7 +135,6 @@
 
     ctx.imageSmoothingEnabled = false
     ctx.globalCompositeOperation = "copy"
-    console.log(width, offCanvas.width * scale, (width - offCanvas.width * scale) / 4)
 
     ctx.drawImage(offCanvas, canvasXOffset(), 0, offCanvas.width * scale, offCanvas.height * scale)
 
@@ -241,31 +240,23 @@
     switch (e.key) {
       case "ArrowUp":
         e.preventDefault()
-        if (analyzeMode) {
-        } else {
-          scrollT(-(2 ** (-3 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0))))
-        }
+        scrollT(-(2 ** (-3 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0))))
+
         break
       case "ArrowDown":
         e.preventDefault()
-        if (analyzeMode) {
-        } else {
-          scrollT(2 ** (-3 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0)))
-        }
+        scrollT(2 ** (-3 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0)))
+
         break
       case "ArrowLeft":
         e.preventDefault()
-        if (analyzeMode) {
-        } else {
-          scrollX(-(2 ** (-4 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0))))
-        }
+        scrollX(-(2 ** (-4 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0))))
+
         break
       case "ArrowRight":
         e.preventDefault()
-        if (analyzeMode) {
-        } else {
-          scrollX(2 ** (-4 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0)))
-        }
+        scrollX(2 ** (-4 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0)))
+
         break
       case "PageUp":
         e.preventDefault()
@@ -337,15 +328,15 @@
           position.t = baseSeek * 10 ** (e.key.charCodeAt(0) - "1".charCodeAt(0))
         }
         break
-      case "h":
+      case "j":
+        e.preventDefault()
+        position.x = m.tape.leftEdge
+        break
+      case "k":
         e.preventDefault()
         position.x = m.tape.head
         break
       case "l":
-        e.preventDefault()
-        position.x = m.tape.leftEdge
-        break
-      case "r":
         e.preventDefault()
         position.x = m.tape.rightEdge
         break

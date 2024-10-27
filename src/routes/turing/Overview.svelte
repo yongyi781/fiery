@@ -35,6 +35,8 @@
   let mouseX = $state(0)
   let mouseY = $state(0)
   let tooltip: HTMLDivElement
+  /** x-scale of the view, as measured by x-coordinate of the right edge. */
+  let xmax = 0
   let mouseOverInfo = $derived.by(() => {
     const { t, x } = hoverPosition()
     if (t < 0 || t >= numSteps) return null
@@ -71,7 +73,7 @@
   function hoverPosition() {
     return {
       t: Math.round((mouseY / height) * numSteps),
-      x: Math.floor(((2 * mouseX) / width - 1) * getXmax())
+      x: Math.floor(((2 * mouseX) / width - 1) * xmax)
     }
   }
 
@@ -81,7 +83,7 @@
     imageData = new ImageData(width, height)
     // Get tape size first
     m.seek(numSteps)
-    const xmax = getXmax()
+    xmax = getXmax()
     m.seek(0)
     // Non-svelte snapshots for performance
     const w = width
@@ -158,7 +160,10 @@
 
 <canvas
   id="canvas"
-  class={cn("mx-auto select-none border", analyzeMode ? "border border-green-500" : "")}
+  class={cn(
+    "mx-auto select-none border",
+    analyzeMode ? "focus:outline focus:outline-2 focus:outline-blue-500" : "focus:outline-none"
+  )}
   {width}
   {height}
   tabindex="0"

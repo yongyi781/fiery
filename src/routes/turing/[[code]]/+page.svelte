@@ -1,8 +1,9 @@
 <script lang="ts">
   import { dev } from "$app/environment"
-  import { goto } from "$app/navigation"
+  import { afterNavigate, goto } from "$app/navigation"
   import { page } from "$app/stores"
   import { Button } from "$lib/components/ui/button"
+  import * as Dialog from "$lib/components/ui/dialog"
   import { Input } from "$lib/components/ui/input"
   import { Label } from "$lib/components/ui/label"
   import { turingMachineCache } from "$lib/turing-machine-cache.svelte"
@@ -32,30 +33,30 @@
     if (rule.length > 0) code = formatTMRule(rule)
   })
 
-  onMount(() => {
-    $effect(() => {
-      if (!rulesEqual(rule, machine.rule)) {
-        const m = new TuringMachine($state.snapshot(rule))
-        if (turingMachineCache.value != null && rulesEqual(m.rule, turingMachineCache.value.rule)) {
-          m.snapshots = turingMachineCache.value.snapshots.map((tape) => new Tape(tape))
-          m.snapshotFrequency = turingMachineCache.value.snapshotFrequency
-        }
-        machine = m
-        goto(`/turing/${code}`, { keepFocus: true })
+  $effect(() => {
+    if (!rulesEqual(rule, machine.rule)) {
+      // Rule changed reactively, update machine to a new machine with that rule.
+      console.log(formatTMRule(rule), formatTMRule(machine.rule))
+      machine = new TuringMachine($state.snapshot(rule))
+      if (turingMachineCache.value != null && rulesEqual(machine.rule, turingMachineCache.value.rule)) {
+        machine.snapshots = turingMachineCache.value.snapshots.map((tape) => new Tape(tape))
+        machine.snapshotFrequency = turingMachineCache.value.snapshotFrequency
       }
-    })
+    }
+  })
 
+  afterNavigate(() => {
+    const code = location.pathname.split("/").pop()
+    if (code === "turing" || !code) {
+    } else rule = parseTMRule(code)
+  })
+
+  onMount(() => {
     document.querySelector("canvas")?.focus()
   })
 </script>
 
 <svelte:window
-  onpopstate={() => {
-    const code = location.pathname.split("/").pop()
-    if (code === "turing" || !code) {
-      rule = parseTMRule(randomChoice(machines))
-    } else rule = parseTMRule(code)
-  }}
   onkeydown={(e) => {
     if (e.key === "F" && e.altKey) {
       e.preventDefault()
@@ -91,15 +92,14 @@
         e.currentTarget.setCustomValidity("Invalid code")
       } else {
         e.currentTarget.setCustomValidity("")
-        rule = parsed
+        goto(`/turing/${formatTMRule(parsed)}`, { keepFocus: true })
       }
     }}
   />
   <Button
     variant="outline"
     onclick={() => {
-      const code = randomChoice(machines)
-      rule = parseTMRule(code)
+      goto(`/turing/${randomChoice(machines)}`, { keepFocus: true })
     }}>Random</Button
   >
   <Button variant="outline" href="/turing/explore/{code}" class="ml-4">Explore</Button>
@@ -120,6 +120,30 @@
 </div>
 <div class="self-center">
   <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;
-  <a class="text-cyan-500 hover:underline" href="/turing/{code}">Permalink</a>
+  <Dialog.Root>
+    <Dialog.Trigger class="text-cyan-500 hover:underline">Mouse and keyboard shortcuts</Dialog.Trigger>
+    <Dialog.Content>
+      <Dialog.Header>
+        <Dialog.Title class="mb-4">Mouse and keyboard shortcuts</Dialog.Title>
+        <Dialog.Description class="grid grid-cols-[auto_auto] gap-4">
+          <hr class="col-span-2" />
+          <span class="mr-2 text-gray-600 dark:text-gray-400">0 / Home</span>
+          <span class="text-gray-900 dark:text-gray-100">See 65536 steps</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">1&ndash;9</span>
+          <span class="text-gray-900 dark:text-gray-100">n &mapsto; See 65536 × 2<sup>n</sup> steps</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">+ / -</span>
+          <span class="text-gray-900 dark:text-gray-100">Increase/decrease number of steps</span>
+          <hr class="col-span-2" />
+          <span class="mr-2 text-gray-600 dark:text-gray-400">Click</span>
+          <span class="text-gray-900 dark:text-gray-100">Toggle analyze mode</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">Double click</span>
+          <span class="text-gray-900 dark:text-gray-100">Explore clicked location</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">Ctrl + Mouse wheel</span>
+          <span class="text-gray-900 dark:text-gray-100">Increase/decrease number of steps</span>
+          <hr class="col-span-2" />
+        </Dialog.Description>
+      </Dialog.Header>
+    </Dialog.Content>
+  </Dialog.Root>
 </div>
 <Content />

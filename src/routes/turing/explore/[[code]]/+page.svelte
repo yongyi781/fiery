@@ -1,19 +1,20 @@
 <script lang="ts">
   import { dev } from "$app/environment"
-  import { goto, replaceState } from "$app/navigation"
+  import { afterNavigate, goto } from "$app/navigation"
   import { page } from "$app/stores"
   import { Button } from "$lib/components/ui/button"
+  import * as Dialog from "$lib/components/ui/dialog"
   import { Input } from "$lib/components/ui/input"
   import { Label } from "$lib/components/ui/label"
   import { Switch } from "$lib/components/ui/switch"
+  import { turingMachineCache } from "$lib/turing-machine-cache.svelte"
   import { randomChoice } from "$lib/utils"
   import { onMount } from "svelte"
   import Content from "../../Content.svelte"
   import Editor from "../../Editor.svelte"
   import Explore from "../../Explore.svelte"
   import machines from "../../machines"
-  import { formatTMRule, parseTMRule, rulesEqual, Tape, TuringMachine, type TMRule } from "../../turing"
-  import { turingMachineCache } from "$lib/turing-machine-cache.svelte"
+  import { formatTMRule, parseTMRule, rulesEqual, Tape, TuringMachine } from "../../turing"
 
   const { data } = $props()
 
@@ -36,20 +37,23 @@
     if (rule.length > 0) code = formatTMRule(rule)
   })
 
-  onMount(() => {
-    $effect(() => {
-      if (!rulesEqual(rule, machine.rule)) {
-        console.log("New rule")
-        const m = new TuringMachine($state.snapshot(rule))
-        if (turingMachineCache.value != null && rulesEqual(m.rule, turingMachineCache.value.rule)) {
-          m.snapshots = turingMachineCache.value.snapshots.map((tape) => new Tape(tape))
-          m.snapshotFrequency = turingMachineCache.value.snapshotFrequency
-        }
-        machine = m
-        goto(`/turing/explore/${code}`, { keepFocus: true })
+  $effect(() => {
+    if (!rulesEqual(rule, machine.rule)) {
+      machine = new TuringMachine($state.snapshot(rule))
+      if (turingMachineCache.value != null && rulesEqual(machine.rule, turingMachineCache.value.rule)) {
+        machine.snapshots = turingMachineCache.value.snapshots.map((tape) => new Tape(tape))
+        machine.snapshotFrequency = turingMachineCache.value.snapshotFrequency
       }
-    })
+    }
+  })
 
+  afterNavigate(() => {
+    const code = location.pathname.split("/").pop()
+    if (code === "turing" || !code) {
+    } else rule = parseTMRule(code)
+  })
+
+  onMount(() => {
     document.querySelector("canvas")?.focus()
   })
 </script>
@@ -97,15 +101,14 @@
         e.currentTarget.setCustomValidity("Invalid code")
       } else {
         e.currentTarget.setCustomValidity("")
-        rule = parsed
+        goto(`/turing/explore/${formatTMRule(parsed)}`, { keepFocus: true })
       }
     }}
   />
   <Button
     variant="outline"
     onclick={() => {
-      const code = randomChoice(machines)
-      rule = parseTMRule(code)
+      goto(`/turing/explore/${randomChoice(machines)}`, { keepFocus: true })
     }}>Random</Button
   >
   <Button variant="outline" href="/turing/{code}" class="ml-4">Overview</Button>
@@ -135,6 +138,46 @@
 </div>
 <div class="self-center">
   <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;
-  <a class="text-cyan-500 hover:underline" href="/turing/explore/{code}">Permalink</a>
+  <Dialog.Root>
+    <Dialog.Trigger class="text-cyan-500 hover:underline">Mouse and keyboard shortcuts</Dialog.Trigger>
+    <Dialog.Content>
+      <Dialog.Header>
+        <Dialog.Title class="mb-4">Mouse and keyboard shortcuts</Dialog.Title>
+        <Dialog.Description class="grid grid-cols-[auto_auto] gap-4">
+          <hr class="col-span-2" />
+          <span class="mr-2 text-gray-600 dark:text-gray-400">0 / Home</span>
+          <span class="text-gray-900 dark:text-gray-100">Jump to top</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">Shift + 0 / Insert</span>
+          <span class="text-gray-900 dark:text-gray-100">Jump to x-coordinate 0</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">1&ndash;9</span>
+          <span class="text-gray-900 dark:text-gray-100">n &mapsto; Seek to 10<sup>n</sup> steps</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">Ctrl + 0&ndash;9</span>
+          <span class="text-gray-900 dark:text-gray-100">Set zoom level</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">Alt + 0&ndash;9</span>
+          <span class="text-gray-900 dark:text-gray-100">Set animate speed</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">Space</span>
+          <span class="text-gray-900 dark:text-gray-100">Toggle animate</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">+ / -</span>
+          <span class="text-gray-900 dark:text-gray-100">Increase/decrease animate speed</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">[ / ]</span>
+          <span class="text-gray-900 dark:text-gray-100">Increase/decrease zoom scale</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">J / K / L</span>
+          <span class="text-gray-900 dark:text-gray-100">Jump to left edge/head/right edge of tape</span>
+          <hr class="col-span-2" />
+          <span class="mr-2 text-gray-600 dark:text-gray-400">Click</span>
+          <span class="text-gray-900 dark:text-gray-100">Toggle analyze mode</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">Mouse wheel</span>
+          <span class="text-gray-900 dark:text-gray-100">Move vertically</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">Shift + Mouse wheel</span>
+          <span class="text-gray-900 dark:text-gray-100">Move horizontally</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">Ctrl + Mouse wheel</span>
+          <span class="text-gray-900 dark:text-gray-100">Zoom</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">Alt + Mouse wheel</span>
+          <span class="text-gray-900 dark:text-gray-100">Adjust animate speed by powers of 2</span>
+          <hr class="col-span-2" />
+        </Dialog.Description>
+      </Dialog.Header>
+    </Dialog.Content>
+  </Dialog.Root>
 </div>
 <Content />
