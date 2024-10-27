@@ -31,7 +31,7 @@
   let m = new TuringMachine() // Non-proxy version.
   let renderTime = $state(0)
   let analyzeMode = $state(false)
-  let mouseOver = $state(false)
+  let mouseOver = $state(true)
   let mouseY = $state(0)
   let tooltip: HTMLDivElement
   let mouseOverInfo = $derived.by(() => {

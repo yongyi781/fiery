@@ -15,8 +15,12 @@
     machine: TuringMachine
     width: number
     height: number
+    /** The initial position to explore. */
+    position?: {
+      t: number
+      x: number
+    }
     scale?: number
-    startStep?: number
     animate?: boolean
     animateSpeed?: number
     debug?: boolean
@@ -27,7 +31,10 @@
     scale = $bindable(8),
     width = $bindable(512),
     height = $bindable(512),
-    startStep = $bindable(0),
+    position = $bindable({
+      t: 0,
+      x: 0
+    }),
     animate = $bindable(false),
     animateSpeed = $bindable(1),
     debug = false
@@ -40,7 +47,7 @@
   let m = new TuringMachine() // Non-proxy version.
   let renderTime = $state(0)
   let analyzeMode = $state(false)
-  let mouseOver = $state(false)
+  let mouseOver = $state(true)
   let mouseX = $state(0)
   let mouseY = $state(0)
   let mouseOverInfo = $state({
@@ -54,43 +61,60 @@
     } as Transition
   })
   let tooltip: HTMLDivElement
-  let leftEdge = 0
 
-  // For debug
-  let numPixels = $state(1)
-
-  function numSteps() {
-    return Math.floor(height / scale)
+  /** The min and max tape indices to render. */
+  function getXBounds() {
+    return { left: position.x - Math.ceil(width / scale / 2), right: position.x + Math.ceil(width / scale / 2) }
   }
 
-  function scroll(dir: number) {
-    startStep = Math.max(0, startStep + Math.round(dir * numSteps()))
+  function scrollT(delta: number) {
+    let d = Math.round((delta * height) / scale)
+    if (d === 0) d = Math.sign(delta)
+    position.t = Math.max(0, position.t + d)
+  }
+
+  function scrollX(delta: number) {
+    let d = Math.round((delta * width) / scale)
+    if (d === 0) d = Math.sign(delta)
+    position.x += d
+  }
+
+  /** The x-coordinate of where the offscreen canvas is rendered to the main canvas. */
+  function canvasXOffset() {
+    return Math.floor((width - offCanvas.width * scale) / 2)
+  }
+
+  /** The spacetime coordinates of the mouse.*/
+  function hoverPosition() {
+    return {
+      t: Math.floor(mouseY / scale + position.t),
+      x: Math.floor((mouseX - canvasXOffset()) / scale) + getXBounds().left
+    }
   }
 
   function renderOffscreenCanvas() {
-    if (ctx == null || offCtx == null || m.rule.length === 0 || scale <= 0 || height <= 0 || startStep < 0) return
+    if (ctx == null || offCtx == null || m.rule.length === 0 || scale <= 0 || height <= 0 || position.t < 0) return
 
     const now = performance.now()
-    m.seek(startStep)
+    m.seek(position.t)
 
-    // Run it once to get how wide the canvas should be
-    const h = numSteps()
-    if (h === 0) return
-    m.seek(startStep + h - 1)
-    leftEdge = m.tape.leftEdge
-    offCanvas.width = m.tape.size
+    const h = Math.ceil(height / scale)
+    const { left, right } = getXBounds()
+    offCanvas.width = right - left + 1
     offCanvas.height = h
     offCtx.imageSmoothingEnabled = false
     offCtx.globalCompositeOperation = "copy"
 
     // Now render
-    m.seek(startStep)
-    const imageData = offCtx.createImageData(offCanvas.width, h)
+    m.seek(position.t)
+    const imageData = offCtx.createImageData(offCanvas.width, offCanvas.height)
     const nSymbols = m.rule[0].length
     const offCanvasWidth = offCanvas.width
     for (let t = 0; t < h; ++t) {
-      for (let x = m.tape.leftEdge; x <= m.tape.rightEdge; ++x) {
-        const index = 4 * (t * offCanvasWidth + x - leftEdge)
+      const lx = Math.max(left, m.tape.leftEdge)
+      const hx = Math.min(right, m.tape.rightEdge)
+      for (let x = lx; x <= hx; ++x) {
+        const index = 4 * (t * offCanvasWidth + x - left)
         if (x === m.tape.head) {
           const color = getTmStateColor(m.tape.state)
           for (let k = 0; k < 4; ++k) imageData.data[index + k] = color[k]
@@ -107,45 +131,36 @@
   }
 
   function renderMainCanvas() {
-    if (
-      canvas == null ||
-      ctx == null ||
-      offCanvas.width === 0 ||
-      offCanvas.height === 0 ||
-      numSteps() === 0 ||
-      startStep < 0
-    )
-      return
+    if (canvas == null || ctx == null || offCanvas.width === 0 || offCanvas.height === 0 || position.t < 0) return
 
-    canvas.width = offCanvas.width * scale
-    canvas.height = offCanvas.height * scale
     ctx.imageSmoothingEnabled = false
     ctx.globalCompositeOperation = "copy"
-    ctx.drawImage(offCanvas, 0, 0, canvas.width, canvas.height)
+    console.log(width, offCanvas.width * scale, (width - offCanvas.width * scale) / 4)
 
-    numPixels = offCanvas.width * offCanvas.height
+    ctx.drawImage(offCanvas, canvasXOffset(), 0, offCanvas.width * scale, offCanvas.height * scale)
 
     if (analyzeMode && mouseOver) {
       ctx.globalCompositeOperation = "source-over"
       ctx.fillStyle = "rgba(192, 220, 255, 0.5)"
-      ctx.fillRect(Math.floor(mouseX / scale) * scale, 0, scale, canvas.height)
-      ctx.fillRect(0, Math.floor(mouseY / scale) * scale, canvas.width, scale)
+      const { t, x } = hoverPosition()
+      ctx.fillRect((x - getXBounds().left) * scale + canvasXOffset(), 0, scale, canvas.height)
+      ctx.fillRect(0, (t - position.t) * scale, canvas.width, scale)
 
-      const x = Math.floor(mouseX / scale) + leftEdge
-      const t = Math.floor(mouseY / scale) + startStep
-      m.seek(t)
+      if (t >= 0) {
+        m.seek(t)
 
-      mouseOverInfo = {
-        t: t,
-        x: x,
-        tape: m.tape,
-        transition: m.peek()
+        mouseOverInfo = {
+          t,
+          x,
+          tape: m.tape,
+          transition: m.peek()
+        }
       }
     }
   }
 
   function draw() {
-    startStep = Math.max(0, startStep + animateSpeed)
+    position.t = Math.max(0, position.t + animateSpeed)
     if (animate) requestAnimationFrame(draw)
   }
 
@@ -161,7 +176,8 @@
   onMount(() => {
     ctx = canvas.getContext("2d")
     offCanvas = new OffscreenCanvas(0, 0)
-    offCtx = offCanvas.getContext("2d")
+    offCtx = offCanvas.getContext("2d")!
+    const h = Math.floor(height / scale)
 
     $effect(() => {
       if (!rulesEqual(m.rule, machine.rule)) m = machine.clone()
@@ -179,142 +195,189 @@
   })
 </script>
 
-<div class="overflow-auto" style="max-width: {width + 2}px;">
-  <canvas
-    id="canvas"
-    class={cn("mx-auto select-none border", analyzeMode ? "border-green-500" : "")}
-    width="0"
-    height={untrack(() => height)}
-    tabindex="0"
-    bind:this={canvas}
-    onwheel={(e) => {
-      if (e.shiftKey) return
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault()
-        if (e.deltaY < 0) ++scale
-        else if (e.deltaY > 0 && scale > 1) --scale
-      } else if (e.altKey) {
-        e.preventDefault()
-        if (e.deltaY < 0) animateSpeed *= 2
-        else if (e.deltaY > 0 && Math.abs(animateSpeed) > 1) animateSpeed = Math.floor(animateSpeed / 2)
+<canvas
+  id="canvas"
+  class={cn(
+    "mx-auto select-none border",
+    analyzeMode ? "focus:outline focus:outline-2 focus:outline-green-500" : "focus:outline-none"
+  )}
+  {width}
+  {height}
+  tabindex="0"
+  bind:this={canvas}
+  onwheel={(e) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault()
+      let newScale = scale
+      if (e.deltaY < 0) newScale = Math.max(scale + 1, Math.round(scale * 1.1))
+      else if (e.deltaY > 0 && scale > 1) newScale = Math.min(scale - 1, Math.round(scale / 1.1))
+      if (newScale != scale) {
+        // Adjust t and x so that mouse is at the same cell as before
+        const t = position.t + Math.round(mouseY * (1 / scale - 1 / newScale))
+        const x = position.x + Math.round((mouseX - canvasXOffset() - width / 2) * (1 / scale - 1 / newScale))
+        if (t >= 0) {
+          position.t = t
+        }
+        position.x = x
+        scale = newScale
+      }
+    } else if (e.altKey) {
+      e.preventDefault()
+      if (e.deltaY < 0) animateSpeed *= 2
+      else if (e.deltaY > 0 && Math.abs(animateSpeed) > 1) animateSpeed = Math.floor(animateSpeed / 2)
+    } else {
+      e.preventDefault()
+      if (e.deltaX !== 0) {
+        // Probably using trackpad...
+        scrollX(e.deltaX / 2000)
+        scrollT(e.deltaY / 750)
       } else {
+        if (e.shiftKey) scrollX(e.deltaY / 2000)
+        else scrollT(e.deltaY / 750)
+      }
+    }
+  }}
+  onkeydown={(e) => {
+    switch (e.key) {
+      case "ArrowUp":
         e.preventDefault()
-        scroll(e.deltaY / 500)
-      }
-    }}
-    onkeydown={(e) => {
-      switch (e.key) {
-        case "ArrowUp":
+        if (analyzeMode) {
+        } else {
+          scrollT(-(2 ** (-3 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0))))
+        }
+        break
+      case "ArrowDown":
+        e.preventDefault()
+        if (analyzeMode) {
+        } else {
+          scrollT(2 ** (-3 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0)))
+        }
+        break
+      case "ArrowLeft":
+        e.preventDefault()
+        if (analyzeMode) {
+        } else {
+          scrollX(-(2 ** (-4 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0))))
+        }
+        break
+      case "ArrowRight":
+        e.preventDefault()
+        if (analyzeMode) {
+        } else {
+          scrollX(2 ** (-4 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0)))
+        }
+        break
+      case "PageUp":
+        e.preventDefault()
+        scrollT(-1)
+        break
+      case "PageDown":
+        e.preventDefault()
+        scrollT(1)
+        break
+      case " ":
+        e.preventDefault()
+        animate = !animate
+        break
+      case "+":
+      case "=":
+        e.preventDefault()
+        animateSpeed *= 2
+        break
+      case "-":
+        e.preventDefault()
+        if (Math.abs(animateSpeed) > 1) animateSpeed = Math.floor(animateSpeed / 2)
+        break
+      case "[":
+        e.preventDefault()
+        if (scale > 1) --scale
+        break
+      case "]":
+        ++scale
+        break
+      case "Alt":
+        e.preventDefault()
+        break
+      case "Home":
+      case "0":
+      case ")":
+        if (e.ctrlKey || e.metaKey) scale = 1
+        else {
           e.preventDefault()
-          if (analyzeMode) {
-          } else {
-            scroll(-0.25)
-          }
-          break
-        case "ArrowDown":
+          if (e.shiftKey) position.x = 0
+          else position.t = 0
+        }
+        break
+      case "Insert": // Shift+Numpad0
+        position.x = 0
+        break
+      case "Enter":
+        e.preventDefault()
+        analyzeMode = true
+        break
+      case "Escape":
+        e.preventDefault()
+        analyzeMode = false
+        break
+      case "1":
+      case "2":
+      case "3":
+      case "4":
+      case "5":
+      case "6":
+      case "7":
+      case "8":
+      case "9":
+        if (!e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
           e.preventDefault()
-          if (analyzeMode) {
-          } else {
-            scroll(0.25)
-          }
-          break
-        case "PageUp":
-          e.preventDefault()
-          scroll(-1)
-          break
-        case "PageDown":
-          e.preventDefault()
-          scroll(1)
-          break
-        case " ":
-          e.preventDefault()
-          animate = !animate
-          break
-        case "+":
-        case "=":
-          e.preventDefault()
-          animateSpeed *= 2
-          break
-        case "-":
-          e.preventDefault()
-          if (Math.abs(animateSpeed) > 1) animateSpeed = Math.floor(animateSpeed / 2)
-          break
-        case "[":
-          e.preventDefault()
-          if (scale > 1) --scale
-          break
-        case "]":
-          ++scale
-          break
-        case "Alt":
-          e.preventDefault()
-          break
-        case "Home":
-        case "0":
-          if (!e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
-            e.preventDefault()
-            startStep = 0
-          }
-          break
-        case "Enter":
-          e.preventDefault()
-          analyzeMode = true
-          break
-        case "Escape":
-          e.preventDefault()
-          analyzeMode = false
-          break
-        case "1":
-        case "2":
-        case "3":
-        case "4":
-        case "5":
-        case "6":
-        case "7":
-        case "8":
-        case "9":
-          if (!e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
-            e.preventDefault()
-            const baseSeek = 10
-            startStep = baseSeek * 10 ** (e.key.charCodeAt(0) - "1".charCodeAt(0))
-          }
-          break
-      }
-    }}
-    onmousedown={(e) => {
-      if (e.button === 0) {
-        analyzeMode = !analyzeMode
-        updateMouse(e)
-        renderMainCanvas()
-      }
-    }}
-    onmouseenter={(e) => {
-      if (e.button === 0) {
-        mouseOver = true
-        renderMainCanvas()
-      }
-    }}
-    onmouseleave={(e) => {
-      if (e.button === 0) {
-        mouseOver = false
-        renderMainCanvas()
-      }
-    }}
-    onmousemove={(e) => {
-      if (analyzeMode) {
-        updateMouse(e)
-        renderMainCanvas()
-      }
-    }}
-  ></canvas>
-</div>
+          const baseSeek = 10
+          position.t = baseSeek * 10 ** (e.key.charCodeAt(0) - "1".charCodeAt(0))
+        }
+        break
+      case "h":
+        e.preventDefault()
+        position.x = m.tape.head
+        break
+      case "l":
+        e.preventDefault()
+        position.x = m.tape.leftEdge
+        break
+      case "r":
+        e.preventDefault()
+        position.x = m.tape.rightEdge
+        break
+    }
+  }}
+  onmousedown={(e) => {
+    if (e.button === 0) {
+      analyzeMode = !analyzeMode
+      updateMouse(e)
+      renderMainCanvas()
+    }
+  }}
+  onmouseenter={(e) => {
+    if (e.button === 0) {
+      mouseOver = true
+      renderMainCanvas()
+    }
+  }}
+  onmouseleave={(e) => {
+    if (e.button === 0) {
+      mouseOver = false
+      renderMainCanvas()
+    }
+  }}
+  onmousemove={(e) => {
+    if (analyzeMode) {
+      updateMouse(e)
+      renderMainCanvas()
+    }
+  }}
+></canvas>
 {#if debug}
   <div class="self-center">
-    Rendering time {renderTime.toFixed(2)} ms | {(
-      (renderTime * 1000000 * scale * scale) /
-      (numPixels * scale * scale)
-    ).toFixed(0)}
-    ns per pixel
+    Rendering time {renderTime.toFixed(2)} ms | {((renderTime * 1000000 * scale * scale) / (width * height)).toFixed(0)}
+    ns per pixel | {mouseX}, {mouseY}
   </div>
 {/if}
 <div
