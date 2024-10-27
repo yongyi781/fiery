@@ -221,7 +221,13 @@
 </svelte:head>
 
 <form onsubmit={onSubmit} class="flex items-center gap-x-3">
-  <Input placeholder="Search, e.g. 1,1,2,3,5,8" spellcheck="false" autocomplete="off" bind:value={queryInput} />
+  <Input
+    placeholder="Search, e.g. 1,1,2,3,5,8"
+    spellcheck="false"
+    autocomplete="off"
+    autofocus
+    bind:value={queryInput}
+  />
   <Button type="submit" disabled={fetching}>Search</Button>
 </form>
 
