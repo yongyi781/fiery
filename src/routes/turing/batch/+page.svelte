@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { page } from "$app/stores"
   import * as Resizable from "$lib/components/ui/resizable"
   import { Textarea } from "$lib/components/ui/textarea"
   import { localStore } from "$lib/local-store.svelte"
   import Overview from "../Overview.svelte"
   import { parseTMRule, TuringMachine } from "../turing"
 
+  const numSteps = Number($page.url.searchParams.get("n")).valueOf() ?? 65536
   let input = localStore("batch-turing-input", "")
   let validInputs = $derived(new Set(input.value.split("\n").filter((s) => parseTMRule(s).length > 0)))
 </script>
@@ -33,7 +35,7 @@
         {#each validInputs as s, i (s)}
           <li class="ml-4 text-center">
             <a href="/turing/{s}">
-              <Overview machine={new TuringMachine(parseTMRule(s))} width={128} height={128} />
+              <Overview machine={new TuringMachine(parseTMRule(s))} width={128} height={128} {numSteps} />
               <div class="bg-slate-200 dark:bg-slate-900">{i + 1}</div>
             </a>
           </li>

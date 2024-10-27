@@ -27,6 +27,6 @@ export class LocalStore<T> {
   }
 }
 
-export function localStore<T>(key: string, value: T) {
-  return new LocalStore(key, value)
+export function localStore<T>(key: string, defaultValue: T) {
+  return new LocalStore(key, defaultValue)
 }
