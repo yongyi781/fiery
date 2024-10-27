@@ -21,7 +21,7 @@
   let initCode = data.code
   let code = $state(initCode)
   let rule = $state(parseTMRule(initCode))
-  let machine = $state(new TuringMachine(parseTMRule(initCode)))
+  let machine = $state(new TuringMachine())
   let scale = $state(Number($page.url.searchParams.get("scale")).valueOf() || 2)
   let width = $state(Number($page.url.searchParams.get("w")).valueOf() || 1024)
   let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 768)

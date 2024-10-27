@@ -22,7 +22,7 @@
   let initCode = data.code ?? ""
   let code = $state(initCode)
   let rule = $state(parseTMRule(initCode))
-  let machine = $state(new TuringMachine(parseTMRule(initCode)))
+  let machine = $state(new TuringMachine())
   let width = $state(initWidth)
   let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 512)
   let numSteps = $state(initNumSteps)
