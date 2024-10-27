@@ -3,10 +3,11 @@
   import { turingMachineCache } from "$lib/turing-machine-cache.svelte"
   import { cn } from "$lib/utils"
   import { onMount, untrack } from "svelte"
-  import { formatTMRule, getTmSymbolColor, rulesEqual, Tape, TuringMachine } from "./turing"
+  import { formatTMRule, getTmSymbolColor, rulesEqual, Tape, TuringMachine, type TuringMachineInfo } from "./turing"
+  import { Input } from "$lib/components/ui/input"
 
   interface Props {
-    machine: TuringMachine
+    machineInfo: TuringMachineInfo
     width: number
     height: number
     numSteps?: number
@@ -16,7 +17,7 @@
   }
 
   let {
-    machine,
+    machineInfo,
     width,
     height,
     numSteps = $bindable(16384),
@@ -44,7 +45,7 @@
     return {
       t,
       x,
-      tape: m.tape.clone(),
+      tape: new Tape(m.tape),
       transition: m.peek()
     }
   })
@@ -54,7 +55,7 @@
     for (let i = 0; i < n; ++i) {
       const t = i / n
       m.seek(Math.round((1 - t) * start + t * end))
-      res.push(m.tape.clone())
+      res.push(new Tape(m.tape))
     }
     return res
   }
@@ -147,7 +148,14 @@
     ctx = canvas.getContext("2d")
 
     $effect(() => {
-      if (!rulesEqual(m.rule, machine.rule)) m = machine.clone()
+      m = new TuringMachine(machineInfo)
+      untrack(() => {
+        renderImageData()
+        renderCanvas()
+      })
+    })
+
+    $effect(() => {
       renderImageData()
       untrack(() => renderCanvas())
     })
@@ -241,7 +249,6 @@
     ns per pixel
   </div>
 {/if}
-
 <div
   class="pointer-events-none fixed text-nowrap rounded-md bg-slate-50 px-2 py-1 dark:bg-slate-700 {(!analyzeMode ||
     !interactive ||

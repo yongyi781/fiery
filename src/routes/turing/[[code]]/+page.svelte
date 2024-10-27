@@ -6,14 +6,14 @@
   import * as Dialog from "$lib/components/ui/dialog"
   import { Input } from "$lib/components/ui/input"
   import { Label } from "$lib/components/ui/label"
-  import { turingMachineCache } from "$lib/turing-machine-cache.svelte"
   import { randomChoice } from "$lib/utils"
   import { onMount } from "svelte"
   import Content from "../Content.svelte"
   import Editor from "../Editor.svelte"
   import machines from "../machines"
   import Overview from "../Overview.svelte"
-  import { formatTMRule, parseTMRule, rulesEqual, Tape, TuringMachine } from "../turing"
+  import { formatTMRule, parseTMRule, rulesEqual, Tape, TuringMachine, type TuringMachineInfo } from "../turing"
+  import { turingMachineCache } from "$lib/turing-machine-cache.svelte"
 
   let { data } = $props()
 
@@ -21,8 +21,8 @@
   const initNumSteps = Number($page.url.searchParams.get("n")).valueOf() || 65536
   let initCode = data.code ?? ""
   let code = $state(initCode)
-  let rule = $state(parseTMRule(initCode))
-  let machine = $state(new TuringMachine())
+  // let rule = $state(parseTMRule(initCode))
+  let machineInfo: TuringMachineInfo = $state({ rule: parseTMRule(initCode) })
   let width = $state(initWidth)
   let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 512)
   let numSteps = $state(initNumSteps)
@@ -30,23 +30,23 @@
   let debug = $page.url.searchParams.has("debug") || dev
 
   $effect(() => {
-    if (rule.length > 0) code = formatTMRule(rule)
+    if (machineInfo.rule.length > 0) code = formatTMRule(machineInfo.rule)
   })
 
   $effect(() => {
-    if (!rulesEqual(rule, machine.rule)) {
-      // Rule changed reactively, update machine to a new machine with that rule.
-      machine = new TuringMachine($state.snapshot(rule))
-      if (turingMachineCache.value != null && rulesEqual(machine.rule, turingMachineCache.value.rule)) {
-        machine.snapshots = turingMachineCache.value.snapshots.map((tape) => new Tape(tape))
-        machine.snapshotFrequency = turingMachineCache.value.snapshotFrequency
-      }
+    if (
+      turingMachineCache.value != null &&
+      rulesEqual(machineInfo.rule, turingMachineCache.value.rule) &&
+      machineInfo.tape === turingMachineCache.value.initialTape
+    ) {
+      machineInfo.snapshots = turingMachineCache.value.snapshots
+      machineInfo.snapshotFrequency = turingMachineCache.value.snapshotFrequency
     }
   })
 
   afterNavigate(() => {
     const code = location.pathname.split("/").pop()
-    if (code != null && code != "turing") rule = parseTMRule(code)
+    if (code != null && code != "turing") machineInfo.rule = parseTMRule(code)
   })
 
   onMount(() => {
@@ -102,7 +102,7 @@
   >
   <Button variant="outline" href="/turing/explore/{code}" class="ml-4">Explore</Button>
 </div>
-<Editor bind:rule />
+<Editor bind:rule={machineInfo.rule} />
 <div class="mt-4 flex flex-wrap items-center justify-center gap-1 whitespace-nowrap">
   <Label for="width" class="ml-4">Width:</Label>
   <Input type="number" id="width" min={1} max={65535} class="w-20" autocomplete="off" bind:value={width} />
@@ -114,7 +114,19 @@
   <Input type="number" id="quality" min={1} class="w-20" autocomplete="off" bind:value={quality} />
 </div>
 <div class="mt-3 self-center">
-  <Overview {machine} {width} {height} bind:numSteps {quality} interactive {debug} />
+  <Overview {machineInfo} {width} {height} bind:numSteps {quality} interactive {debug} />
+  <Input
+    placeholder="Initial tape, e.g. B110101>111"
+    class="font-mono text-xs invalid:focus:ring-red-500"
+    oninput={(e) => {
+      const t = Tape.parse(e.currentTarget.value)
+      if (t == null) e.currentTarget.setCustomValidity("Invalid tape")
+      else {
+        e.currentTarget.setCustomValidity("")
+        machineInfo.tape = t
+      }
+    }}
+  />
 </div>
 <div class="self-center">
   <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;

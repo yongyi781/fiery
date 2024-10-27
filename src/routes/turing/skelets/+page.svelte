@@ -10,7 +10,7 @@
     <div class="border border-slate-800 text-center">
       <a href="/turing/{r}">
         <Overview
-          machine={new TuringMachine(parseTMRule(r))}
+          machineInfo={{ rule: parseTMRule(r) }}
           width={128}
           height={128}
           numSteps={Number($page.url.searchParams.get("n")).valueOf() || 65536}

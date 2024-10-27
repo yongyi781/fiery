@@ -8,11 +8,12 @@
     rulesEqual,
     Tape,
     TuringMachine,
-    type Transition
+    type Transition,
+    type TuringMachineInfo
   } from "./turing"
 
   interface Props {
-    machine: TuringMachine
+    machineInfo: TuringMachineInfo
     width: number
     height: number
     /** The initial position to explore. */
@@ -27,7 +28,7 @@
   }
 
   let {
-    machine,
+    machineInfo,
     scale = $bindable(8),
     width = $bindable(512),
     height = $bindable(512),
@@ -179,7 +180,14 @@
     const h = Math.floor(height / scale)
 
     $effect(() => {
-      if (!rulesEqual(m.rule, machine.rule)) m = machine.clone()
+      m = new TuringMachine(machineInfo)
+      untrack(() => {
+        renderOffscreenCanvas()
+        renderMainCanvas()
+      })
+    })
+
+    $effect(() => {
       renderOffscreenCanvas()
       untrack(() => renderMainCanvas())
     })
@@ -340,6 +348,20 @@
         e.preventDefault()
         position.x = m.tape.rightEdge
         break
+      case "c":
+        if (analyzeMode && (e.ctrlKey || e.metaKey) && mouseOverInfo != null && mouseOverInfo.t >= 0) {
+          e.preventDefault()
+          // Copy tape contents
+          m.seek(mouseOverInfo.t)
+          navigator.clipboard.writeText(m.tape.toString()).then(
+            () => {
+              console.log("Tape contents copied to clipboard.")
+            },
+            (err) => {
+              console.error("Could not copy tape contents: ", err)
+            }
+          )
+        }
     }
   }}
   onmousedown={(e) => {
@@ -398,6 +420,10 @@
     <div class="grid grid-cols-[auto_auto] gap-x-4">
       <div class="text-right font-semibold">Tape size</div>
       <div class="text-right">{mouseOverInfo.tape.size}</div>
+      <div class="text-right font-semibold">Left edge</div>
+      <div class="text-left">{mouseOverInfo.tape.leftEdge}</div>
+      <div class="text-right font-semibold">Right edge</div>
+      <div class="text-left">{mouseOverInfo.tape.rightEdge}</div>
       <div class="text-right font-semibold">Head</div>
       <div class="text-right">{mouseOverInfo.tape.head}</div>
       <div class="text-right font-semibold">Tape[{mouseOverInfo.x}]</div>

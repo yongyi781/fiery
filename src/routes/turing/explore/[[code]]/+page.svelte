@@ -14,14 +14,13 @@
   import Editor from "../../Editor.svelte"
   import Explore from "../../Explore.svelte"
   import machines from "../../machines"
-  import { formatTMRule, parseTMRule, rulesEqual, Tape, TuringMachine } from "../../turing"
+  import { formatTMRule, parseTMRule, rulesEqual, Tape, TuringMachine, type TuringMachineInfo } from "../../turing"
 
   const { data } = $props()
 
   let initCode = data.code
   let code = $state(initCode)
-  let rule = $state(parseTMRule(initCode))
-  let machine = $state(new TuringMachine())
+  let machineInfo: TuringMachineInfo = $state({ rule: parseTMRule(initCode) })
   let scale = $state(Number($page.url.searchParams.get("scale")).valueOf() || 2)
   let width = $state(Number($page.url.searchParams.get("w")).valueOf() || 1024)
   let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 768)
@@ -34,22 +33,23 @@
   let debug = $page.url.searchParams.has("debug") || dev
 
   $effect(() => {
-    if (rule.length > 0) code = formatTMRule(rule)
+    if (machineInfo.rule.length > 0) code = formatTMRule(machineInfo.rule)
   })
 
   $effect(() => {
-    if (!rulesEqual(rule, machine.rule)) {
-      machine = new TuringMachine($state.snapshot(rule))
-      if (turingMachineCache.value != null && rulesEqual(machine.rule, turingMachineCache.value.rule)) {
-        machine.snapshots = turingMachineCache.value.snapshots.map((tape) => new Tape(tape))
-        machine.snapshotFrequency = turingMachineCache.value.snapshotFrequency
-      }
+    if (
+      turingMachineCache.value != null &&
+      rulesEqual(machineInfo.rule, turingMachineCache.value.rule) &&
+      machineInfo.tape === turingMachineCache.value.initialTape
+    ) {
+      machineInfo.snapshots = turingMachineCache.value.snapshots
+      machineInfo.snapshotFrequency = turingMachineCache.value.snapshotFrequency
     }
   })
 
   afterNavigate(() => {
     const code = location.pathname.split("/").pop()
-    if (code != null && code != "turing") rule = parseTMRule(code)
+    if (code != null && code != "turing") machineInfo.rule = parseTMRule(code)
   })
 
   onMount(() => {
@@ -60,8 +60,8 @@
 <svelte:window
   onpopstate={() => {
     const code = location.pathname.split("/").pop()
-    if (code === "Explore" || !code) rule = parseTMRule(randomChoice(machines))
-    else rule = parseTMRule(code)
+    if (code === "Explore" || !code) machineInfo.rule = parseTMRule(randomChoice(machines))
+    else machineInfo.rule = parseTMRule(code)
   }}
   onkeydown={(e) => {
     if (e.key === "F" && e.altKey) {
@@ -112,7 +112,7 @@
   >
   <Button variant="outline" href="/turing/{code}" class="ml-4">Overview</Button>
 </div>
-<Editor bind:rule />
+<Editor bind:rule={machineInfo.rule} />
 <div class="mt-4 flex flex-wrap items-center justify-center gap-1 whitespace-nowrap">
   <Label for="scale">Scale:</Label>
   <Input type="number" id="scale" class="w-20" min="1" autocomplete="off" bind:value={scale} />
@@ -133,7 +133,7 @@
   />
 </div>
 <div class="mt-3 self-center">
-  <Explore {machine} bind:scale bind:width bind:height bind:position bind:animate bind:animateSpeed {debug} />
+  <Explore {machineInfo} bind:scale bind:width bind:height bind:position bind:animate bind:animateSpeed {debug} />
 </div>
 <div class="self-center">
   <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;
@@ -162,6 +162,8 @@
           <span class="text-gray-900 dark:text-gray-100">Increase/decrease zoom scale</span>
           <span class="mr-2 text-gray-600 dark:text-gray-400">J / K / L</span>
           <span class="text-gray-900 dark:text-gray-100">Jump to left edge/head/right edge of tape</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">Ctrl + C</span>
+          <span class="text-gray-900 dark:text-gray-100">(In analyze mode) Copy tape at mouse</span>
           <hr class="col-span-2" />
           <span class="mr-2 text-gray-600 dark:text-gray-400">Click</span>
           <span class="text-gray-900 dark:text-gray-100">Toggle analyze mode</span>

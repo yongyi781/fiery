@@ -36,7 +36,7 @@
         {#each validInputs as s, i (s)}
           <li class="ml-4 text-center">
             <a href="/turing/{s}">
-              <Overview machine={new TuringMachine(parseTMRule(s))} width={128} height={128} {numSteps} {quality} />
+              <Overview machineInfo={{ rule: parseTMRule(s) }} width={128} height={128} {numSteps} {quality} />
               <div class="bg-slate-200 dark:bg-slate-900">{i + 1}</div>
             </a>
           </li>

@@ -45,15 +45,30 @@ export class Tape {
   leftEdge = 0
   rightEdge = 0
 
-  constructor(t?: Tape) {
-    if (t != null) {
-      this.data = t.data
-      this.head = t.head
-      this.state = t.state
-      this.offset = t.offset
-      this.leftEdge = t.leftEdge
-      this.rightEdge = t.rightEdge
+  constructor(t: Partial<Tape> = {}) {
+    Object.assign(this, t)
+    if (t.data != null) this.data = this.data.slice()
+  }
+
+  static parse(s: string) {
+    const t = new Tape()
+    if (s.length === 0) return t
+    t.state = s.charCodeAt(0) - 65
+    if (t.state < 0 || t.state >= 26) return null
+    if (s.length === 1) return t
+    t.data = new Uint8Array(s.length - 1)
+    let di = 0
+    let foundCaret = false
+    for (let i = 1; i < s.length; i++) {
+      if (s[i] === ">" && !foundCaret) {
+        foundCaret = true
+        t.offset = i - 1
+      } else if (s.charCodeAt(i) >= 48 && s.charCodeAt(i) < 57) t.data[di++] = s.charCodeAt(i) - 48
+      else return null
     }
+    t.leftEdge = -t.offset
+    t.rightEdge = di - 1 - t.offset
+    return t
   }
 
   at(i: number) {
@@ -92,15 +107,14 @@ export class Tape {
     return this.rightEdge - this.leftEdge + 1
   }
 
-  clone() {
-    const t = new Tape()
-    t.data = this.data.slice()
-    t.head = this.head
-    t.state = this.state
-    t.offset = this.offset
-    t.leftEdge = this.leftEdge
-    t.rightEdge = this.rightEdge
-    return t
+  /** Returns the tape in the format [state]xxxx>xxxx. */
+  toString() {
+    return (
+      String.fromCharCode(this.state + 65) +
+      this.data.slice(this.leftEdge + this.offset, this.head + this.offset).join("") +
+      ">" +
+      this.data.slice(this.head + this.offset, this.rightEdge + this.offset + 1).join("")
+    )
   }
 }
 
@@ -159,29 +173,34 @@ export function rulesEqual(a: TMRule, b: TMRule) {
   return formatTMRule(a) === formatTMRule(b)
 }
 
-export class TuringMachine {
+export interface TuringMachineInfo {
   rule: TMRule
-  tape: Tape
-  steps: number
-  snapshots: Tape[]
-  snapshotFrequency: number
+  tape?: Tape
+  snapshots?: Tape[]
+  snapshotFrequency?: number
+}
 
-  constructor(
-    rule: TMRule = [],
-    tape: Tape = new Tape(),
-    steps = 0,
-    snapshots: Tape[] = [tape.clone()],
-    snapshotFrequency = 1 << 16
-  ) {
-    this.rule = rule
-    this.tape = tape
-    this.steps = steps
-    this.snapshots = snapshots
-    this.snapshotFrequency = snapshotFrequency
+export class TuringMachine {
+  rule: TMRule = []
+  tape = new Tape()
+  steps = 0
+  snapshots: Tape[] = []
+  snapshotFrequency = 1 << 16
+
+  /** Constructor. Note that this doesn't clone the snapshots, but shares them instead. */
+  constructor(machine: Partial<TuringMachine> = {}) {
+    Object.assign(this, machine)
+    if (machine.rule != null) this.rule = this.rule.map((row) => row.map((tr) => ({ ...tr })))
+    if (machine.tape != null) this.tape = new Tape(this.tape)
+    if (machine.snapshots == null) this.snapshots = [new Tape(this.tape)]
   }
 
   get halted() {
     return this.tape.state < 0 || this.tape.state >= this.rule.length
+  }
+
+  get initialTape() {
+    return this.snapshots[0]
   }
 
   peek() {
@@ -196,7 +215,7 @@ export class TuringMachine {
     // Should we take snapshot?
     const desiredStep = this.snapshots.length * this.snapshotFrequency
     if (this.steps === desiredStep) {
-      this.snapshots.push(this.tape.clone())
+      this.snapshots.push(new Tape(this.tape))
     }
     return true
   }
@@ -207,20 +226,9 @@ export class TuringMachine {
     const index = Math.min(Math.floor(steps / this.snapshotFrequency), this.snapshots.length - 1)
     // Don't need to jump if we're between index and steps
     if (this.steps < index * this.snapshotFrequency || this.steps > steps) {
-      this.tape = this.snapshots[index].clone()
+      this.tape = new Tape(this.snapshots[index])
       this.steps = index * this.snapshotFrequency
     }
     while (this.steps < steps) if (!this.step()) break
-  }
-
-  /** Clones the Turing machine. This doesn't clone the snapshots. */
-  clone() {
-    return new TuringMachine(
-      this.rule.map((row) => row.map((tr) => ({ ...tr }))),
-      this.tape.clone(),
-      this.steps,
-      this.snapshots,
-      this.snapshotFrequency
-    )
   }
 }
