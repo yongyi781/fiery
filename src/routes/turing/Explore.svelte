@@ -371,10 +371,8 @@
     }
   }}
   onmousemove={(e) => {
-    if (analyzeMode) {
-      updateMouse(e)
-      renderMainCanvas()
-    }
+    updateMouse(e)
+    if (analyzeMode) renderMainCanvas()
   }}
 ></canvas>
 {#if debug}

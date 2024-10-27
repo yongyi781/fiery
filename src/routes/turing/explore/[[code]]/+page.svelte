@@ -17,7 +17,6 @@
 
   const { data } = $props()
 
-  const initStartStep = Number($page.url.searchParams.get("t")).valueOf() || 0
   let initCode = data.code
   let code = $state(initCode)
   let rule = $state(parseTMRule(initCode))
@@ -26,8 +25,8 @@
   let width = $state(Number($page.url.searchParams.get("w")).valueOf() || 1024)
   let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 768)
   let position = $state({
-    t: initStartStep,
-    x: 0
+    t: Number($page.url.searchParams.get("t")).valueOf() || 0,
+    x: Number($page.url.searchParams.get("x")).valueOf() || 0
   })
   let animate = $state($page.url.searchParams.has("animate"))
   let animateSpeed = $state(Number($page.url.searchParams.get("animateSpeed")).valueOf() || 1)

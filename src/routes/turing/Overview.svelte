@@ -32,14 +32,16 @@
   let renderTime = $state(0)
   let analyzeMode = $state(false)
   let mouseOver = $state(true)
+  let mouseX = $state(0)
   let mouseY = $state(0)
   let tooltip: HTMLDivElement
   let mouseOverInfo = $derived.by(() => {
-    const t = Math.round((mouseY / height) * numSteps)
+    const { t, x } = hoverPosition()
     if (t < 0 || t >= numSteps) return null
     m.seek(t)
     return {
       t,
+      x,
       tape: m.tape.clone(),
       transition: m.peek()
     }
@@ -61,13 +63,25 @@
     return Math.round(res / (end - start))
   }
 
+  function getXmax() {
+    return Math.max(Math.floor(width / 2), -m.tape.leftEdge, m.tape.rightEdge)
+  }
+
+  /** The spacetime coordinates of the mouse.*/
+  function hoverPosition() {
+    return {
+      t: Math.round((mouseY / height) * numSteps),
+      x: Math.floor(((2 * mouseX) / width - 1) * getXmax())
+    }
+  }
+
   function renderImageData() {
     if (ctx == null || m.rule.length === 0) return
     const now = performance.now()
     imageData = new ImageData(width, height)
     // Get tape size first
     m.seek(numSteps)
-    const xmax = Math.max(Math.floor(width / 2), -m.tape.leftEdge, m.tape.rightEdge)
+    const xmax = getXmax()
     m.seek(0)
     // Non-svelte snapshots for performance
     const w = width
@@ -119,6 +133,7 @@
   }
 
   function updateMouse(e: MouseEvent) {
+    mouseX = e.offsetX
     mouseY = e.offsetY
 
     const left = Math.min(e.x + 15, visualViewport?.width! - tooltip.clientWidth - 12)
@@ -212,7 +227,7 @@
   }}
   ondblclick={() => {
     turingMachineCache.value = m
-    goto(`/turing/explore/${formatTMRule(m.rule)}?t=${mouseOverInfo?.t}`)
+    goto(`/turing/explore/${formatTMRule(m.rule)}?t=${mouseOverInfo?.t}&x=${mouseOverInfo?.x}`)
   }}
 ></canvas>
 {#if debug}
@@ -232,7 +247,7 @@
 >
   {#if analyzeMode && interactive && mouseOverInfo?.tape != null}
     <h3 class="mb-1 text-center font-mono text-lg font-bold">
-      {mouseOverInfo.t}
+      ({mouseOverInfo.t}, {mouseOverInfo.x})
     </h3>
     <div class="grid grid-cols-[auto_auto] gap-x-4 font-mono text-sm">
       <div class="text-right font-semibold">Tape size</div>
