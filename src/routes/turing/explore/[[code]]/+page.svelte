@@ -49,8 +49,7 @@
 
   afterNavigate(() => {
     const code = location.pathname.split("/").pop()
-    if (code === "turing" || !code) {
-    } else rule = parseTMRule(code)
+    if (code != null && code != "turing") rule = parseTMRule(code)
   })
 
   onMount(() => {

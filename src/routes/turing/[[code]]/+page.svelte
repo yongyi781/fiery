@@ -36,7 +36,6 @@
   $effect(() => {
     if (!rulesEqual(rule, machine.rule)) {
       // Rule changed reactively, update machine to a new machine with that rule.
-      console.log(formatTMRule(rule), formatTMRule(machine.rule))
       machine = new TuringMachine($state.snapshot(rule))
       if (turingMachineCache.value != null && rulesEqual(machine.rule, turingMachineCache.value.rule)) {
         machine.snapshots = turingMachineCache.value.snapshots.map((tape) => new Tape(tape))
@@ -47,8 +46,7 @@
 
   afterNavigate(() => {
     const code = location.pathname.split("/").pop()
-    if (code === "turing" || !code) {
-    } else rule = parseTMRule(code)
+    if (code != null && code != "turing") rule = parseTMRule(code)
   })
 
   onMount(() => {
