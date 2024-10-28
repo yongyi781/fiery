@@ -40,7 +40,7 @@
     if (
       turingMachineCache.value != null &&
       rulesEqual(machineInfo.rule, turingMachineCache.value.rule) &&
-      machineInfo.tape === turingMachineCache.value.initialTape
+      (machineInfo.tape?.toString() ?? "A>0") === turingMachineCache.value.initialTape.toString()
     ) {
       machineInfo.snapshots = turingMachineCache.value.snapshots
       machineInfo.snapshotFrequency = turingMachineCache.value.snapshotFrequency
