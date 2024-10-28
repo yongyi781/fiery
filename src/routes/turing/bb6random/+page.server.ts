@@ -1,8 +1,8 @@
 import { redirect } from "@sveltejs/kit"
 import type { PageServerLoad } from "./$types"
 import { randomChoice } from "$lib/utils"
-import { bb6Holdouts } from "./bb6holdouts"
+import { collections } from "../collections"
 
 export const load = (async () => {
-  redirect(302, `/turing/${randomChoice(bb6Holdouts)}`)
+  redirect(302, `/turing/${randomChoice(collections["bb6-holdouts"])}`)
 }) satisfies PageServerLoad

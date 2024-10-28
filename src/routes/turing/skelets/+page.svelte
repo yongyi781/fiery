@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from "$app/stores"
-  import { skelets } from "../machines"
+  import { skelets } from "../machines-client"
   import Overview from "../Overview.svelte"
   import { parseTMRule, TuringMachine } from "../turing"
 </script>

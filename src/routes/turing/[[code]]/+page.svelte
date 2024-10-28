@@ -10,7 +10,7 @@
   import { onMount } from "svelte"
   import Content from "../Content.svelte"
   import Editor from "../Editor.svelte"
-  import machines from "../machines"
+  import machines from "../machines-client"
   import Overview from "../Overview.svelte"
   import { formatTMRule, parseTMRule, rulesEqual, Tape, TuringMachine, type TuringMachineInfo } from "../turing"
   import { turingMachineCache } from "$lib/turing-machine-cache.svelte"

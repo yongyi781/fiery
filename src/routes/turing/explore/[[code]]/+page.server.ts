@@ -1,6 +1,6 @@
 import { randomChoice } from "$lib/utils"
 import { redirect } from "@sveltejs/kit"
-import machines from "../../machines"
+import machines from "../../machines-client"
 import { parseTMRule } from "../../turing"
 import type { PageServerLoad } from "./$types"
 
