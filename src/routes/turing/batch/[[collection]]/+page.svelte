@@ -9,7 +9,7 @@
   const { data } = $props()
 
   // svelte-ignore non_reactive_update
-  let input: { [value: string]: string } | LocalStore<string>
+  let input: { value: string }
   if (data.collection != null) input = { value: data.collection.join("\n") }
   else input = localStore("batch-turing-input", "")
   const size = Number($page.url.searchParams.get("size")).valueOf() || 128
