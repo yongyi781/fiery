@@ -21,10 +21,6 @@
     if (!(n & (n - 1))) return n
     return 1 << (n.toString(2).length - 1)
   }
-
-  function boundNumSteps() {
-    return Math.min(numSteps, bitFloor(2 ** 23 / Math.max(512, input.value.length)))
-  }
 </script>
 
 <svelte:head>
