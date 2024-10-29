@@ -72,8 +72,8 @@
     }
   }}
 />
-<svelte:head
-  ><title>{code.length === 0 ? "" : `${code} - `}Turing Machine Visualizer - Explore</title>
+<svelte:head>
+  <title>{code.length === 0 ? "" : `${code} - `}Turing Machine Visualizer - Explore</title>
   <meta
     name="description"
     content="High performance Turing machine visualizer, useful for the Busy Beaver challenge."

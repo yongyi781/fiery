@@ -63,8 +63,9 @@
       codeInput.focus()
     }
   }}
-/><svelte:head
-  ><title>{code.length === 0 ? "" : `${code} - `}Turing Machine Visualizer - Overview</title>
+/>
+<svelte:head>
+  <title>{code.length === 0 ? "" : `${code} - `}Turing Machine Visualizer - Overview</title>
   <meta
     name="description"
     content="High performance Turing machine visualizer, useful for the Busy Beaver challenge."
