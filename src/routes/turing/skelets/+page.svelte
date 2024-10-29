@@ -5,6 +5,10 @@
   import { parseTMRule, TuringMachine } from "../turing"
 </script>
 
+<svelte:head>
+  <title>Skelets</title>
+  <meta name="description" content="A list of the 43 skelets and their spacetime diagrams." />
+</svelte:head>
 <div class="flex flex-wrap gap-1">
   {#each skelets as r, i}
     <div class="border border-slate-800 text-center">
