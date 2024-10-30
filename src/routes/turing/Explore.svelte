@@ -393,8 +393,8 @@
     updateMouse(e)
     if (analyzeMode) renderMainCanvas()
   }}
-  ondrag={(e) => {
-    console.log(e)
+  onblur={() => {
+    analyzeMode = false
   }}
 ></canvas>
 {#if debug}

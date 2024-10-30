@@ -245,6 +245,9 @@
       updateMouse(e)
     }
   }}
+  onblur={() => {
+    analyzeMode = false
+  }}
   ondblclick={() => {
     turingMachineCache.value = m
     goto(`/turing/explore/${formatTMRule(m.rule)}?t=${mouseOverInfo?.t}&x=${mouseOverInfo?.x}`)
