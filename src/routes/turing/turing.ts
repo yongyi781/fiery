@@ -192,7 +192,8 @@ export class TuringMachine {
     Object.assign(this, machine)
     if (machine.rule != null) this.rule = this.rule.map((row) => row.map((tr) => ({ ...tr })))
     if (machine.tape != null) this.tape = new Tape(this.tape)
-    if (machine.snapshots == null) this.snapshots = [new Tape(this.tape)]
+    if (machine.snapshots != null) this.snapshots = this.snapshots.map((t) => new Tape(t))
+    else this.snapshots = [new Tape(this.tape)]
   }
 
   get halted() {
