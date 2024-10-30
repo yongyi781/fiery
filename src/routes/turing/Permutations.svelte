@@ -13,7 +13,10 @@
       })
       .filter(({ s }) => s.startsWith("1RB") || s.startsWith("1LB"))
       .map(({ perm, s }) => {
-        return { perm, s: s.startsWith("1LB") ? s.replaceAll("L", "+").replaceAll("R", "L").replaceAll("+", "R") : s }
+        return {
+          perm: perm.map((i) => String.fromCharCode(i + 65)).join(""),
+          s: s.startsWith("1LB") ? s.replaceAll("L", "+").replaceAll("R", "L").replaceAll("+", "R") : s
+        }
       })
       .filter(({ s }) => isLNF(parseTMRule(s)))
   })
@@ -59,9 +62,8 @@
 <ul class="ml-6 list-disc">
   {#each result as { perm, s }}
     <li>
-      {perm} <span class="font-mono text-sm">{s}</span> &bullet;
-      <a href="/turing/{s}" class="text-cyan-500 hover:underline" data-sveltekit-noscroll>Overview</a> &bullet;
-      <a href="/turing/explore/{s}" class="text-cyan-500 hover:underline" data-sveltekit-noscroll>Explore</a>
+      {perm} &bullet;
+      <a href="/turing/{s}" class="font-mono text-sm text-cyan-500 hover:underline" data-sveltekit-noscroll>{s}</a>
     </li>
   {/each}
 </ul>
