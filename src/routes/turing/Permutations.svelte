@@ -60,8 +60,8 @@
   {#each result as { perm, s }}
     <li>
       {perm} <span class="font-mono text-sm">{s}</span> &bullet;
-      <a href="/turing/{s}" class="text-cyan-500 hover:underline">Overview</a> &bullet;
-      <a href="/turing/explore/{s}" class="text-cyan-500 hover:underline">Explore</a>
+      <a href="/turing/{s}" class="text-cyan-500 hover:underline" data-sveltekit-noscroll>Overview</a> &bullet;
+      <a href="/turing/explore/{s}" class="text-cyan-500 hover:underline" data-sveltekit-noscroll>Explore</a>
     </li>
   {/each}
 </ul>
