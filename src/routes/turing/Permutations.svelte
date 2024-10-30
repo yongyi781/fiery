@@ -1,26 +1,6 @@
 <script lang="ts">
   import { formatTMRule, parseTMRule, type TMRule } from "./turing"
 
-  let { rule }: { rule: TMRule } = $props()
-
-  let result = $derived.by(() => {
-    if (rule.length === 0) return []
-    const n = rule.length
-    return allPermutations(n)
-      .drop(1) // Ignore identity permutation
-      .map((perm) => {
-        return { perm, s: formatTMRule(applyPerm(perm, rule)) }
-      })
-      .filter(({ s }) => s.startsWith("1RB") || s.startsWith("1LB"))
-      .map(({ perm, s }) => {
-        return {
-          perm: perm.map((i) => String.fromCharCode(i + 65)).join(""),
-          s: s.startsWith("1LB") ? s.replaceAll("L", "+").replaceAll("R", "L").replaceAll("+", "R") : s
-        }
-      })
-      .filter(({ s }) => isLNF(parseTMRule(s)))
-  })
-
   function isLNF(rule: TMRule) {
     const t = rule[0][0]
     if (t.symbol !== 1 || t.direction !== 1 || t.toState !== 1) return false
@@ -57,6 +37,28 @@
       }))
     return res
   }
+
+  let { rule }: { rule: TMRule } = $props()
+
+  let result = $derived.by(() => {
+    if (rule.length === 0) return []
+    const n = rule.length
+    // console.log(formatTMRule(rule))
+    return allPermutations(n)
+      .drop(1) // Ignore identity permutation
+      .map((perm) => {
+        return { perm, s: formatTMRule(applyPerm(perm, rule)) }
+      })
+      .filter(({ s }) => s.startsWith("1RB") || s.startsWith("1LB"))
+      .map(({ perm, s }) => {
+        return {
+          perm: perm.map((i) => String.fromCharCode(i + 65)).join(""),
+          s: s.startsWith("1LB") ? s.replaceAll("L", "+").replaceAll("R", "L").replaceAll("+", "R") : s
+        }
+      })
+      .filter(({ s }) => isLNF(parseTMRule(s)))
+      .toArray()
+  })
 </script>
 
 <ul class="ml-6 list-disc">

@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { page } from "$app/stores"
   import Permutations from "./Permutations.svelte"
   import type { TMRule } from "./turing"
 
