@@ -54,7 +54,7 @@ export class Tape {
     const t = new Tape()
     if (s.length === 0) return t
     t.state = s.charCodeAt(0) - 65
-    if (t.state < 0 || t.state >= 26) return null
+    if (t.state < 0 || t.state >= 26) return
     if (s.length === 1) return t
     t.data = new Uint8Array(s.length - 1)
     let di = 0
@@ -64,7 +64,7 @@ export class Tape {
         foundCaret = true
         t.offset = i - 1
       } else if (s.charCodeAt(i) >= 48 && s.charCodeAt(i) < 57) t.data[di++] = s.charCodeAt(i) - 48
-      else return null
+      else return
     }
     t.leftEdge = -t.offset
     t.rightEdge = di - 1 - t.offset

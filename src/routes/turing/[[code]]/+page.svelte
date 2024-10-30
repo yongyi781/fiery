@@ -10,10 +10,11 @@
   import { onMount } from "svelte"
   import Content from "../Content.svelte"
   import Editor from "../Editor.svelte"
+  import { initialTape } from "../initial-tape.svelte"
   import machines from "../machines-client"
   import Overview from "../Overview.svelte"
-  import { formatTMRule, parseTMRule, rulesEqual, Tape, TuringMachine, type TuringMachineInfo } from "../turing"
-  import { turingMachineCache } from "$lib/turing-machine-cache.svelte"
+  import { formatTMRule, parseTMRule, rulesEqual, Tape, type TuringMachineInfo } from "../turing"
+  import { turingMachineCache } from "../turing-machine-cache.svelte"
 
   let { data } = $props()
 
@@ -31,6 +32,10 @@
 
   $effect(() => {
     if (machineInfo.rule.length > 0) code = formatTMRule(machineInfo.rule)
+  })
+
+  $effect(() => {
+    machineInfo.tape = Tape.parse(initialTape.value)
   })
 
   $effect(() => {
@@ -119,13 +124,10 @@
   <Input
     placeholder="Initial tape, e.g. B110101>111"
     class="font-mono text-xs invalid:focus:ring-red-500"
+    bind:value={initialTape.value}
     oninput={(e) => {
-      const t = Tape.parse(e.currentTarget.value)
-      if (t == null) e.currentTarget.setCustomValidity("Invalid tape")
-      else {
-        e.currentTarget.setCustomValidity("")
-        machineInfo.tape = t
-      }
+      if (Tape.parse(e.currentTarget.value) == null) e.currentTarget.setCustomValidity("Invalid tape")
+      else e.currentTarget.setCustomValidity("")
     }}
   />
 </div>
@@ -157,4 +159,4 @@
     </Dialog.Content>
   </Dialog.Root>
 </div>
-<Content />
+<Content rule={machineInfo.rule} />

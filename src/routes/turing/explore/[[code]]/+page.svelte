@@ -7,14 +7,15 @@
   import { Input } from "$lib/components/ui/input"
   import { Label } from "$lib/components/ui/label"
   import { Switch } from "$lib/components/ui/switch"
-  import { turingMachineCache } from "$lib/turing-machine-cache.svelte"
   import { randomChoice } from "$lib/utils"
   import { onMount } from "svelte"
   import Content from "../../Content.svelte"
   import Editor from "../../Editor.svelte"
   import Explore from "../../Explore.svelte"
+  import { initialTape } from "../../initial-tape.svelte"
   import machines from "../../machines-client"
-  import { formatTMRule, parseTMRule, rulesEqual, Tape, TuringMachine, type TuringMachineInfo } from "../../turing"
+  import { formatTMRule, parseTMRule, rulesEqual, Tape, type TuringMachineInfo } from "../../turing"
+  import { turingMachineCache } from "../../turing-machine-cache.svelte"
 
   const { data } = $props()
 
@@ -37,6 +38,10 @@
   })
 
   $effect(() => {
+    machineInfo.tape = Tape.parse(initialTape.value)
+  })
+
+  $effect(() => {
     if (
       turingMachineCache.value != null &&
       rulesEqual(machineInfo.rule, turingMachineCache.value.rule) &&
@@ -44,6 +49,9 @@
     ) {
       machineInfo.snapshots = turingMachineCache.value.snapshots
       machineInfo.snapshotFrequency = turingMachineCache.value.snapshotFrequency
+    } else {
+      delete machineInfo.snapshots
+      delete machineInfo.snapshotFrequency
     }
   })
 
@@ -137,6 +145,7 @@
   <Input
     placeholder="Initial tape, e.g. B110101>111"
     class="font-mono text-xs invalid:focus:ring-red-500"
+    bind:value={initialTape.value}
     oninput={(e) => {
       const t = Tape.parse(e.currentTarget.value)
       if (t == null) e.currentTarget.setCustomValidity("Invalid tape")
@@ -156,7 +165,9 @@
         <Dialog.Title class="mb-4">Mouse and keyboard shortcuts</Dialog.Title>
         <Dialog.Description class="grid grid-cols-[auto_auto] gap-4">
           <hr class="col-span-2" />
-          <span class="mr-2 text-gray-600 dark:text-gray-400">0 / Home</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">Home</span>
+          <span class="text-gray-900 dark:text-gray-100">Reset position to (0, 0)</span>
+          <span class="mr-2 text-gray-600 dark:text-gray-400">0</span>
           <span class="text-gray-900 dark:text-gray-100">Jump to top</span>
           <span class="mr-2 text-gray-600 dark:text-gray-400">Shift + 0 / Insert</span>
           <span class="text-gray-900 dark:text-gray-100">Jump to x-coordinate 0</span>
@@ -193,4 +204,4 @@
     </Dialog.Content>
   </Dialog.Root>
 </div>
-<Content />
+<Content rule={machineInfo.rule} />

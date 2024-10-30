@@ -5,7 +5,6 @@
     getTmStateColor,
     getTmStateColorCss,
     getTmSymbolColor,
-    rulesEqual,
     Tape,
     TuringMachine,
     type Transition,
@@ -49,8 +48,8 @@
   let renderTime = $state(0)
   let analyzeMode = $state(false)
   let mouseOver = $state(true)
-  let mouseX = $state(0)
-  let mouseY = $state(0)
+  /** Offset coordinates of mouse in pixels, from the top left edge of the canvas. */
+  let mouse = $state({ x: 0, y: 0 })
   let mouseOverInfo = $state({
     t: 0,
     x: 0,
@@ -88,8 +87,8 @@
   /** The spacetime coordinates of the mouse.*/
   function hoverPosition() {
     return {
-      t: Math.floor(mouseY / scale + position.t),
-      x: Math.floor((mouseX - canvasXOffset()) / scale) + getXBounds().left
+      t: Math.floor(mouse.y / scale + position.t),
+      x: Math.floor((mouse.x - canvasXOffset()) / scale) + getXBounds().left
     }
   }
 
@@ -165,12 +164,12 @@
   }
 
   function updateMouse(e: MouseEvent) {
-    mouseX = e.offsetX
-    mouseY = e.offsetY
+    mouse.x = e.offsetX
+    mouse.y = e.offsetY
 
-    const left = Math.min(e.x + 15, visualViewport?.width! - tooltip.clientWidth - 12)
-    tooltip.style.left = `${left}px`
-    tooltip.style.top = `${e.y + 15}px`
+    // const left = Math.min(e.x + 15, visualViewport?.width! - tooltip.clientWidth - 12)
+    // tooltip.style.left = `${left}px`
+    // tooltip.style.top = `${e.y + 15}px`
   }
 
   onMount(() => {
@@ -220,8 +219,8 @@
       else if (e.deltaY > 0 && scale > 1) newScale = Math.min(scale - 1, Math.round(scale / 1.1))
       if (newScale != scale) {
         // Adjust t and x so that mouse is at the same cell as before
-        const t = position.t + Math.round(mouseY * (1 / scale - 1 / newScale))
-        const x = position.x + Math.round((mouseX - canvasXOffset() - width / 2) * (1 / scale - 1 / newScale))
+        const t = position.t + Math.round(mouse.y * (1 / scale - 1 / newScale))
+        const x = position.x + Math.round((mouse.x - canvasXOffset() - width / 2) * (1 / scale - 1 / newScale))
         if (t >= 0) {
           position.t = t
         }
@@ -298,6 +297,13 @@
         e.preventDefault()
         break
       case "Home":
+        e.preventDefault()
+        position.x = position.t = 0
+        break
+      case "End":
+        e.preventDefault()
+        position.t = (m.snapshots.length - 1) * m.snapshotFrequency
+        break
       case "0":
       case ")":
         e.preventDefault()
@@ -366,7 +372,7 @@
   }}
   onmousedown={(e) => {
     if (e.button === 0) {
-      analyzeMode = !analyzeMode
+      analyzeMode = true
       updateMouse(e)
       renderMainCanvas()
     }
@@ -387,17 +393,18 @@
     updateMouse(e)
     if (analyzeMode) renderMainCanvas()
   }}
+  ondrag={(e) => {
+    console.log(e)
+  }}
 ></canvas>
 {#if debug}
   <div class="self-center">
     Rendering time {renderTime.toFixed(2)} ms | {((renderTime * 1000000 * scale * scale) / (width * height)).toFixed(0)}
-    ns per pixel | {mouseX}, {mouseY}
+    ns per pixel | {mouse.x}, {mouse.y}
   </div>
 {/if}
 <div
-  class="pointer-events-none fixed text-nowrap rounded-md bg-slate-50 px-2 py-1 font-mono text-sm dark:bg-slate-700 {analyzeMode &&
-  mouseOver &&
-  mouseY >= 0 &&
+  class="fixed bottom-0 left-0 right-0 text-nowrap rounded-md bg-slate-200 px-2 py-1 font-mono text-sm dark:bg-slate-900 {analyzeMode &&
   mouseOverInfo.tape != null
     ? ''
     : 'hidden'}"
@@ -419,15 +426,15 @@
     </h3>
     <div class="grid grid-cols-[auto_auto] gap-x-4">
       <div class="text-right font-semibold">Tape size</div>
-      <div class="text-right">{mouseOverInfo.tape.size}</div>
+      <div class="text-left">{mouseOverInfo.tape.size}</div>
       <div class="text-right font-semibold">Left edge</div>
       <div class="text-left">{mouseOverInfo.tape.leftEdge}</div>
       <div class="text-right font-semibold">Right edge</div>
       <div class="text-left">{mouseOverInfo.tape.rightEdge}</div>
       <div class="text-right font-semibold">Head</div>
-      <div class="text-right">{mouseOverInfo.tape.head}</div>
+      <div class="text-left">{mouseOverInfo.tape.head}</div>
       <div class="text-right font-semibold">Tape[{mouseOverInfo.x}]</div>
-      <div class="text-right">{mouseOverInfo.tape.at(mouseOverInfo.x)}</div>
+      <div class="text-left">{mouseOverInfo.tape.at(mouseOverInfo.x)}</div>
     </div>
   {/if}
 </div>

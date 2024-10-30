@@ -1,10 +1,9 @@
 <script lang="ts">
   import { goto } from "$app/navigation"
-  import { turingMachineCache } from "$lib/turing-machine-cache.svelte"
   import { cn } from "$lib/utils"
   import { onMount, untrack } from "svelte"
-  import { formatTMRule, getTmSymbolColor, rulesEqual, Tape, TuringMachine, type TuringMachineInfo } from "./turing"
-  import { Input } from "$lib/components/ui/input"
+  import { formatTMRule, getTmSymbolColor, Tape, TuringMachine, type TuringMachineInfo } from "./turing"
+  import { turingMachineCache } from "./turing-machine-cache.svelte"
 
   interface Props {
     machineInfo: TuringMachineInfo
@@ -202,6 +201,14 @@
         e.preventDefault()
         numSteps = 65536
         break
+      case "Enter":
+        e.preventDefault()
+        analyzeMode = true
+        break
+      case "Escape":
+        e.preventDefault()
+        analyzeMode = false
+        break
       case "1":
       case "2":
       case "3":
@@ -219,7 +226,7 @@
   }}
   onmousedown={(e) => {
     if (interactive && e.button === 0) {
-      analyzeMode = !analyzeMode
+      analyzeMode = true
       updateMouse(e)
     }
   }}
@@ -250,7 +257,7 @@
   </div>
 {/if}
 <div
-  class="pointer-events-none fixed text-nowrap rounded-md bg-slate-50 px-2 py-1 dark:bg-slate-700 {(!analyzeMode ||
+  class="pointer-events-none fixed text-nowrap rounded-md bg-slate-50 px-2 py-1 dark:bg-slate-900 {(!analyzeMode ||
     !interactive ||
     !mouseOver ||
     mouseOverInfo?.tape == null) &&

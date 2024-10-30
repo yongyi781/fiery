@@ -1,16 +1,13 @@
 <script lang="ts">
-  import { goto } from "$app/navigation"
-  import { page } from "$app/stores"
-  import { Input } from "$lib/components/ui/input"
-  import { Label } from "$lib/components/ui/label"
-  import { formatTMRule, parseTMRule, type TMRule } from "../../turing"
+  import { formatTMRule, parseTMRule, type TMRule } from "./turing"
 
-  let code = $state($page.params.code ?? "")
+  let { rule }: { rule: TMRule } = $props()
+
   let result = $derived.by(() => {
-    const rule = parseTMRule(code)
     if (rule.length === 0) return []
     const n = rule.length
     return allPermutations(n)
+      .drop(1) // Ignore identity permutation
       .map((perm) => {
         return { perm, s: formatTMRule(applyPerm(perm, rule)) }
       })
@@ -59,41 +56,12 @@
   }
 </script>
 
-<svelte:head>
-  <title>Permutation checker</title>
-  <meta name="description" content="Tool to check permutations of a Turing machine rule." />
-</svelte:head>
-<div class="flex flex-row items-center gap-x-2 self-center">
-  <Label for="code" class="text-nowrap"
-    >Code in <a
-      class="text-cyan-500 hover:underline"
-      href="https://discuss.bbchallenge.org/t/standard-tm-text-format/60"
-      target="_blank">standard format</a
-    >:</Label
-  >
-  <Input
-    id="code"
-    class="w-96 font-mono text-sm invalid:focus:ring-red-500"
-    autocomplete="off"
-    spellcheck="false"
-    bind:value={code}
-    oninput={(e) => {
-      const parsed = parseTMRule(e.currentTarget.value)
-      if (parsed.length === 0) {
-        e.currentTarget.setCustomValidity("Invalid code")
-      } else {
-        e.currentTarget.setCustomValidity("")
-        goto(`/turing/permutations/${formatTMRule(parsed)}`, { keepFocus: true })
-      }
-    }}
-  />
-</div>
-<div class="self-center">
+<ul class="ml-6 list-disc">
   {#each result as { perm, s }}
-    <div>
+    <li>
       {perm} <span class="font-mono text-sm">{s}</span> &bullet;
       <a href="/turing/{s}" class="text-cyan-500 hover:underline">Overview</a> &bullet;
       <a href="/turing/explore/{s}" class="text-cyan-500 hover:underline">Explore</a>
-    </div>
+    </li>
   {/each}
-</div>
+</ul>
