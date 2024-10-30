@@ -35,7 +35,8 @@
   })
 
   $effect(() => {
-    machineInfo.tape = Tape.parse(initialTape.value)
+    const t = Tape.parse(initialTape.value)
+    if (t != null) machineInfo.tape = t
   })
 
   $effect(() => {

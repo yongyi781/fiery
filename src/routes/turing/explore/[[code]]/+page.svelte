@@ -38,7 +38,8 @@
   })
 
   $effect(() => {
-    machineInfo.tape = Tape.parse(initialTape.value)
+    const t = Tape.parse(initialTape.value)
+    if (t != null) machineInfo.tape = t
   })
 
   $effect(() => {
@@ -149,10 +150,7 @@
     oninput={(e) => {
       const t = Tape.parse(e.currentTarget.value)
       if (t == null) e.currentTarget.setCustomValidity("Invalid tape")
-      else {
-        e.currentTarget.setCustomValidity("")
-        machineInfo.tape = t
-      }
+      else e.currentTarget.setCustomValidity("")
     }}
   />
 </div>
