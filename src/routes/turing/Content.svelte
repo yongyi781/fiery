@@ -15,11 +15,6 @@
         <a href="/turing/bb6random" class="text-cyan-500 hover:underline">Random BB(6) holdout</a> (as of 2024/10/19)
       </li>
       <li><a href="/turing/batch" class="text-cyan-500 hover:underline">Batch Turing machine visualizer</a></li>
-      <li>
-        <a href="/turing/permutations/{$page.url.pathname.split('/').pop()}" class="text-cyan-500 hover:underline"
-          >Check permutations</a
-        >
-      </li>
     </ul>
   </div>
   <div class="m-2 rounded-sm border bg-slate-900/50 p-4">
