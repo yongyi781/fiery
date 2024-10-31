@@ -187,13 +187,12 @@ export class TuringMachine {
   snapshots: Tape[] = []
   snapshotFrequency = 1 << 16
 
-  /** Constructor. Note that this doesn't clone the snapshots, but shares them instead. */
   constructor(machine: Partial<TuringMachine> = {}) {
     Object.assign(this, machine)
     if (machine.rule != null) this.rule = this.rule.map((row) => row.map((tr) => ({ ...tr })))
     if (machine.tape != null) this.tape = new Tape(this.tape)
-    if (machine.snapshots == null) this.snapshots = [new Tape(this.tape)]
-    else this.snapshots = machine.snapshots
+    if (machine.snapshots != null) this.snapshots = machine.snapshots.map((tape) => new Tape(tape))
+    else this.snapshots = [new Tape(this.tape)]
   }
 
   get halted() {
