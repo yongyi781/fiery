@@ -28,8 +28,6 @@ export function getTmStateColorCss(state: number) {
   return `rgb(${res[0]}, ${res[1]}, ${res[2]})`
 }
 
-export const defaultTM = "1RB0RC_1LB1LD_0RA0LD_1LA1RC"
-
 export type Transition = {
   symbol: number
   direction: -1 | 1
