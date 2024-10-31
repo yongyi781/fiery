@@ -2,7 +2,7 @@
   import { goto } from "$app/navigation"
   import { cn } from "$lib/utils"
   import { onMount, untrack } from "svelte"
-  import { formatTMRule, getTmSymbolColor, Tape, TuringMachine, type TuringMachineInfo } from "./turing"
+  import { formatTMRule, getTmSymbolColor, maxSymbolColor, Tape, TuringMachine, type TuringMachineInfo } from "./turing"
   import { turingMachineCache } from "./turing-machine-cache.svelte"
 
   interface Props {
@@ -61,8 +61,8 @@
 
   function getColor(tape: Tape, start: number, end: number, nSymbols: number) {
     let res = 0
-    for (let i = start; i < end; ++i) res += getTmSymbolColor(tape.at(i), nSymbols)
-    return Math.round(res / (end - start))
+    for (let i = start; i < end; ++i) res += (tape.at(i) / (nSymbols - 1)) ** 2.2
+    return (res / (end - start)) ** (1 / 2.2) * maxSymbolColor
   }
 
   function getXmax() {
