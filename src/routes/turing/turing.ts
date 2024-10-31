@@ -13,7 +13,7 @@ export const tmStateColors = [
 export const maxSymbolColor = 165
 
 export function getTmSymbolColor(x: number, nSymbols: number) {
-  return Math.round((x / (nSymbols - 1)) * maxSymbolColor)
+  return (x / (nSymbols - 1)) * maxSymbolColor
 }
 
 export function getTmStateColor(state: number) {
@@ -187,12 +187,13 @@ export class TuringMachine {
   snapshots: Tape[] = []
   snapshotFrequency = 1 << 16
 
+  /** Constructor. Note that this doesn't clone the snapshots, but shares them instead. */
   constructor(machine: Partial<TuringMachine> = {}) {
     Object.assign(this, machine)
     if (machine.rule != null) this.rule = this.rule.map((row) => row.map((tr) => ({ ...tr })))
     if (machine.tape != null) this.tape = new Tape(this.tape)
-    if (machine.snapshots != null) this.snapshots = this.snapshots.map((t) => new Tape(t))
-    else this.snapshots = [new Tape(this.tape)]
+    if (machine.snapshots == null) this.snapshots = [new Tape(this.tape)]
+    else this.snapshots = machine.snapshots
   }
 
   get halted() {
