@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { formatTMRule, parseTMRule, type TMRule } from "./turing"
+  import { formatTMRule, parseTMRule, stateToString, type TMRule } from "./turing"
 
   function isLNF(rule: TMRule) {
     const t = rule[0][0]
@@ -52,7 +52,7 @@
       .filter(({ s }) => s.startsWith("1RB") || s.startsWith("1LB"))
       .map(({ perm, s }) => {
         return {
-          perm: perm.map((i) => String.fromCharCode(i + 65)).join(""),
+          perm: perm.map((i) => stateToString(i)).join(""),
           s: s.startsWith("1LB") ? s.replaceAll("L", "+").replaceAll("R", "L").replaceAll("+", "R") : s
         }
       })

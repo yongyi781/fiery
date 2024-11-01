@@ -49,7 +49,7 @@
     }
   })
 
-  function getTapes(start: number, end: number, n: number) {
+  function sampleTapes(start: number, end: number, n: number) {
     const res: Tape[] = []
     for (let i = 0; i < n; ++i) {
       const t = i / n
@@ -61,8 +61,18 @@
 
   function getColor(tape: Tape, start: number, end: number, nSymbols: number) {
     let res = 0
-    for (let i = start; i < end; ++i) res += (tape.at(i) / (nSymbols - 1)) ** 2.2
-    return (res / (end - start)) ** (1 / 2.2) * maxSymbolColor
+    // To handle translated cyclers whose tapes grow linearly
+    const step = Math.ceil((end - start) / 50)
+    const n = Math.floor((end - start) / step)
+    for (let i = start; i < end; i += step) res += (tape.at(i) / (nSymbols - 1)) ** 2.2
+    return (res / n) ** (1 / 2.2) * maxSymbolColor
+  }
+
+  function averageTapes(tapes: Tape[], f: (tape: Tape) => number) {
+    if (tapes.length === 1) return f(tapes[0])
+    let res = 0
+    for (let t of tapes) res += f(t) ** 2.2
+    return (res / tapes.length) ** (1 / 2.2)
   }
 
   function getXmax() {
@@ -95,13 +105,13 @@
     for (let i = 0; i < h; ++i) {
       const lt = Math.floor(i * windowHeight)
       const ht = Math.floor((i + 1) * windowHeight)
-      const tapes = getTapes(lt, ht, q)
+      const tapes = sampleTapes(lt, ht, q)
       if (m.halted) break
       if (xmax === Math.floor(w / 2)) {
         // 1-1
         for (let x = m.tape.leftEdge; x <= m.tape.rightEdge; ++x) {
           const index = 4 * (i * w + x + xmax)
-          const color = tapes.map((tape) => getTmSymbolColor(tape.at(x), nSymbols)).reduce((a, b) => a + b, 0) / q
+          const color = averageTapes(tapes, (tape) => getTmSymbolColor(tape.at(x), nSymbols))
           for (let k = 0; k < 3; ++k) imageData.data[index + k] = color
           imageData.data[index + 3] = 255
         }
@@ -112,7 +122,7 @@
           const hx = Math.floor((j + 1 - Math.floor(w / 2)) * windowWidth)
 
           if (hx < m.tape.leftEdge || lx > m.tape.rightEdge) continue
-          const color = tapes.map((tape) => getColor(tape, lx, hx, nSymbols)).reduce((a, b) => a + b, 0) / q
+          const color = averageTapes(tapes, (tape) => getColor(tape, lx, hx, nSymbols))
           const index = 4 * (i * w + j)
           for (let k = 0; k < 3; ++k) imageData.data[index + k] = color
           imageData.data[index + 3] = 255

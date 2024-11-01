@@ -34,6 +34,16 @@ export type Transition = {
   toState: number
 }
 
+export function stateToString(state: number) {
+  return state === -1 ? "-" : String.fromCharCode(state + 65)
+}
+
+export type TapeSegment = {
+  data: Uint8Array
+  head: number
+  state: number
+}
+
 /** A Turing tape, along with a head and a state. */
 export class Tape {
   data = new Uint8Array(1)
@@ -69,12 +79,16 @@ export class Tape {
     return t
   }
 
-  at(i: number) {
-    return this.data[i + this.offset] ?? 0
+  get value() {
+    return this.at(this.head)
   }
 
-  read() {
-    return this.at(this.head)
+  get size() {
+    return this.rightEdge - this.leftEdge + 1
+  }
+
+  at(i: number) {
+    return this.data[i + this.offset] ?? 0
   }
 
   write(value: number) {
@@ -101,14 +115,18 @@ export class Tape {
     }
   }
 
-  get size() {
-    return this.rightEdge - this.leftEdge + 1
+  getSegment(start: number, end: number): TapeSegment {
+    return {
+      data: this.data.slice(start + this.offset, end + this.offset),
+      head: this.head - start,
+      state: this.state
+    }
   }
 
   /** Returns the tape in the format [state]xxxx>xxxx. */
   toString() {
     return (
-      String.fromCharCode(this.state + 65) +
+      stateToString(this.state) +
       this.data.slice(this.leftEdge + this.offset, this.head + this.offset).join("") +
       ">" +
       this.data.slice(this.head + this.offset, this.rightEdge + this.offset + 1).join("")
@@ -117,6 +135,10 @@ export class Tape {
 }
 
 export type TMRule = Transition[][]
+
+export function rulesEqual(a: TMRule, b: TMRule) {
+  return formatTMRule(a) === formatTMRule(b)
+}
 
 export function parseTMRule(s: string) {
   s = s.trim().toUpperCase()
@@ -159,7 +181,7 @@ export function formatTMRule(rule: TMRule) {
           if (tr.toState === -1) return "---"
           const symbol = String.fromCharCode(tr.symbol + 48)
           const direction = tr.direction === -1 ? "L" : "R"
-          const toState = String.fromCharCode(tr.toState + 65)
+          const toState = stateToString(tr.toState)
           return `${symbol}${direction}${toState}`
         })
         .join("")
@@ -167,8 +189,10 @@ export function formatTMRule(rule: TMRule) {
     .join("_")
 }
 
-export function rulesEqual(a: TMRule, b: TMRule) {
-  return formatTMRule(a) === formatTMRule(b)
+export type MacroTransition = {
+  from: TapeSegment
+  to: TapeSegment
+  steps: number
 }
 
 export interface TuringMachineInfo {
@@ -201,8 +225,16 @@ export class TuringMachine {
     return this.snapshots[0]
   }
 
+  get head() {
+    return this.tape.head
+  }
+
+  get state() {
+    return this.tape.state
+  }
+
   peek() {
-    return this.rule[this.tape.state]?.[this.tape.read()]
+    return this.rule[this.tape.state]?.[this.tape.value]
   }
 
   step() {
@@ -228,5 +260,23 @@ export class TuringMachine {
       this.steps = index * this.snapshotFrequency
     }
     while (this.steps < steps) if (!this.step()) break
+  }
+
+  getMacroTransition(fromStep: number, toStep: number): MacroTransition {
+    this.seek(fromStep)
+    const startTape = new Tape(this.tape)
+    let lh = this.head
+    let hh = this.head
+    for (let i = fromStep; i < toStep; ++i) {
+      lh = Math.min(lh, this.head)
+      hh = Math.max(hh, this.head)
+      if (!this.step()) break
+    }
+    const endTape = this.tape
+    return {
+      from: startTape.getSegment(lh, hh),
+      to: endTape.getSegment(lh, hh),
+      steps: toStep - fromStep
+    }
   }
 }

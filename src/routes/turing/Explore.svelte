@@ -5,8 +5,11 @@
     getTmStateColor,
     getTmStateColorCss,
     getTmSymbolColor,
+    stateToString,
     Tape,
     TuringMachine,
+    type MacroTransition,
+    type TapeSegment,
     type Transition,
     type TuringMachineInfo
   } from "./turing"
@@ -26,11 +29,22 @@
     debug?: boolean
   }
 
+  interface Point {
+    t: number
+    x: number
+  }
+
+  interface Selection {
+    start?: Point
+    end?: Point
+  }
+
   let {
     machineInfo,
     scale = $bindable(8),
     width = $bindable(512),
     height = $bindable(512),
+    /** The (t, x) coordinates of the top middle of the canvas. */
     position = $bindable({
       t: 0,
       x: 0
@@ -40,19 +54,29 @@
     debug = false
   }: Props = $props()
 
+  /** The min and max tape indices to render. */
+  const xboundsTX = $derived({
+    left: position.x - Math.ceil(width / scale / 2),
+    right: position.x + Math.ceil(width / scale / 2)
+  })
+
   let canvas: HTMLCanvasElement
   let ctx: CanvasRenderingContext2D | null
   let offCanvas: OffscreenCanvas
   let offCtx: OffscreenCanvasRenderingContext2D | null
+  let statusBar: HTMLDivElement
+  // svelte-ignore non_reactive_update
   let m = new TuringMachine() // Non-proxy version.
   let renderTime = $state(0)
   let analyzeMode = $state(false)
-  let mouseOver = $state(true)
-  /** Offset coordinates of mouse in pixels, from the top left edge of the canvas. */
-  let mouse = $state({ x: 0, y: 0 })
+  /** Canvas coordinates of the mouse. */
+  let mouseXY = $state({ x: 0, y: 0 })
+  /** The spacetime coordinates of the mouse.*/
+  const mouseTX = $derived({
+    t: Math.floor(mouseXY.y / scale + position.t),
+    x: Math.floor((mouseXY.x - canvasOffsetX()) / scale) + xboundsTX.left
+  })
   let mouseOverInfo = $state({
-    t: 0,
-    x: 0,
     tape: new Tape(),
     transition: {
       symbol: 0,
@@ -60,12 +84,17 @@
       toState: 25
     } as Transition
   })
-  let tooltip: HTMLDivElement
-
-  /** The min and max tape indices to render. */
-  function getXBounds() {
-    return { left: position.x - Math.ceil(width / scale / 2), right: position.x + Math.ceil(width / scale / 2) }
-  }
+  let selectionTX: Selection = $state({})
+  const selectionRectTX = $derived.by(() => {
+    if (selectionTX.start == null) return
+    const end = selectionTX.end == null ? mouseTX : selectionTX.end
+    return {
+      t: Math.min(selectionTX.start.t, end.t),
+      x: Math.min(selectionTX.start.x, end.x),
+      w: Math.abs(end.x - selectionTX.start.x) + 1,
+      h: Math.abs(end.t - selectionTX.start.t) + 1
+    }
+  })
 
   function scrollT(delta: number) {
     let d = Math.round((delta * height) / scale)
@@ -79,16 +108,20 @@
     position.x += d
   }
 
-  /** The x-coordinate of where the offscreen canvas is rendered to the main canvas. */
-  function canvasXOffset() {
-    return Math.floor((width - offCanvas.width * scale) / 2)
+  function viewWidthTX() {
+    return xboundsTX.right - xboundsTX.left + 1
   }
 
-  /** The spacetime coordinates of the mouse.*/
-  function hoverPosition() {
+  /** The x-coordinate of where the offscreen canvas is rendered to the main canvas. */
+  function canvasOffsetX() {
+    return Math.floor((width - viewWidthTX() * scale) / 2)
+  }
+
+  /** Converts from (t, x) coordinates to (x, y) coordinates. */
+  function toScreen(p: Point) {
     return {
-      t: Math.floor(mouse.y / scale + position.t),
-      x: Math.floor((mouse.x - canvasXOffset()) / scale) + getXBounds().left
+      x: (p.x - xboundsTX.left) * scale + canvasOffsetX(),
+      y: (p.t - position.t) * scale
     }
   }
 
@@ -99,8 +132,8 @@
     m.seek(position.t)
 
     const h = Math.ceil(height / scale)
-    const { left, right } = getXBounds()
-    offCanvas.width = right - left + 1
+    const { left, right } = xboundsTX
+    offCanvas.width = viewWidthTX()
     offCanvas.height = h
     offCtx.imageSmoothingEnabled = false
     offCtx.globalCompositeOperation = "copy"
@@ -109,7 +142,7 @@
     m.seek(position.t)
     const imageData = offCtx.createImageData(offCanvas.width, offCanvas.height)
     const nSymbols = m.rule[0].length
-    const offCanvasWidth = offCanvas.width
+    const offCanvasWidth = viewWidthTX()
     for (let t = 0; t < h; ++t) {
       const lx = Math.max(left, m.tape.leftEdge)
       const hx = Math.min(right, m.tape.rightEdge)
@@ -136,21 +169,35 @@
     ctx.imageSmoothingEnabled = false
     ctx.globalCompositeOperation = "copy"
 
-    ctx.drawImage(offCanvas, canvasXOffset(), 0, offCanvas.width * scale, offCanvas.height * scale)
+    ctx.drawImage(offCanvas, canvasOffsetX(), 0, offCanvas.width * scale, offCanvas.height * scale)
 
-    if (analyzeMode && mouseOver) {
+    if (analyzeMode) {
+      const { x, y } = toScreen(mouseTX)
       ctx.globalCompositeOperation = "source-over"
       ctx.fillStyle = "rgba(192, 220, 255, 0.5)"
-      const { t, x } = hoverPosition()
-      ctx.fillRect((x - getXBounds().left) * scale + canvasXOffset(), 0, scale, canvas.height)
-      ctx.fillRect(0, (t - position.t) * scale, canvas.width, scale)
+      ctx.lineWidth = 2
+      if (selectionRectTX == null) {
+        ctx.fillRect(x, 0, scale, canvas.height)
+        ctx.fillRect(0, y, canvas.width, scale)
+      } else {
+        let { x: x1, y: y1 } = toScreen(selectionRectTX)
+        let { x: x2, y: y2 } = toScreen({
+          t: selectionRectTX.t + selectionRectTX.h,
+          x: selectionRectTX.x + selectionRectTX.w
+        })
+        x1 = Math.min(width, Math.max(-1, x1))
+        y1 = Math.min(height, Math.max(-1, y1))
+        x2 = Math.min(width, Math.max(-1, x2))
+        y2 = Math.min(height, Math.max(-1, y2))
+        ctx.strokeStyle = "rgb(192, 220, 255)"
+        ctx.strokeRect(x1, y1, x2 - x1, y2 - y1)
+        ctx.fillRect(x1, y1, x2 - x1, y2 - y1)
+      }
 
-      if (t >= 0) {
-        m.seek(t)
+      if (mouseTX.t >= 0) {
+        m.seek(mouseTX.t)
 
         mouseOverInfo = {
-          t,
-          x,
           tape: m.tape,
           transition: m.peek()
         }
@@ -164,12 +211,7 @@
   }
 
   function updateMouse(e: MouseEvent) {
-    mouse.x = e.offsetX
-    mouse.y = e.offsetY
-
-    // const left = Math.min(e.x + 15, visualViewport?.width! - tooltip.clientWidth - 12)
-    // tooltip.style.left = `${left}px`
-    // tooltip.style.top = `${e.y + 15}px`
+    mouseXY = { x: e.offsetX, y: e.offsetY }
   }
 
   onMount(() => {
@@ -201,8 +243,31 @@
   })
 </script>
 
+{#snippet renderState(s: number)}
+  <span style="color: {getTmStateColorCss(s)}">{stateToString(s)}</span>
+{/snippet}
+
+{#snippet tapeSegment(s: TapeSegment)}
+  {@render renderState(s.state)}{#if s.head === -1}
+    &lt;{s.data.join("")}
+  {:else}
+    {s.data.slice(0, s.head).join("")}&gt;{s.data.slice(s.head).join("")}
+  {/if}
+{/snippet}
+
+{#snippet macroTransition(mt: MacroTransition)}
+  <p class="text-center text-sm">
+    {@render tapeSegment(mt.from)} &rightarrow;({mt.steps}) {@render tapeSegment(mt.to)}
+  </p>
+{/snippet}
+
+<svelte:document
+  onmousedown={(e) => {
+    if (e.target !== canvas && !statusBar?.contains(e.target as Node)) analyzeMode = false
+  }}
+/>
 <canvas
-  id="canvas"
+  id="explore-canvas"
   class={cn(
     "mx-auto select-none border",
     analyzeMode ? "focus:outline focus:outline-2 focus:outline-green-500" : "focus:outline-none"
@@ -218,14 +283,13 @@
       if (e.deltaY < 0) newScale = Math.max(scale + 1, Math.round(scale * 1.1))
       else if (e.deltaY > 0 && scale > 1) newScale = Math.min(scale - 1, Math.round(scale / 1.1))
       if (newScale != scale) {
-        // Adjust t and x so that mouse is at the same cell as before
-        const t = position.t + Math.round(mouse.y * (1 / scale - 1 / newScale))
-        const x = position.x + Math.round((mouse.x - canvasXOffset() - width / 2) * (1 / scale - 1 / newScale))
-        if (t >= 0) {
-          position.t = t
-        }
+        // Zoom, while adjusting t and x so that mouse is at the same cell as before
+        const t = position.t + Math.floor(mouseXY.y / scale) - Math.floor(mouseXY.y / newScale)
+        const x = position.x + Math.round((mouseXY.x - (canvasOffsetX() + width) / 2) * (1 / scale - 1 / newScale))
         position.x = x
+        position.t = Math.max(0, t)
         scale = newScale
+        console.log(mouseXY)
       }
     } else if (e.altKey) {
       e.preventDefault()
@@ -355,10 +419,10 @@
         position.x = m.tape.rightEdge
         break
       case "c":
-        if (analyzeMode && (e.ctrlKey || e.metaKey) && mouseOverInfo != null && mouseOverInfo.t >= 0) {
+        if (analyzeMode && (e.ctrlKey || e.metaKey) && mouseOverInfo != null && mouseTX.t >= 0) {
           e.preventDefault()
           // Copy tape contents
-          m.seek(mouseOverInfo.t)
+          m.seek(mouseTX.t)
           navigator.clipboard.writeText(m.tape.toString()).then(
             () => {
               console.log("Tape contents copied to clipboard.")
@@ -373,19 +437,15 @@
   onmousedown={(e) => {
     if (e.button === 0) {
       analyzeMode = true
+      if (selectionTX.start != null && selectionTX.end == null) selectionTX.end = mouseTX
+      else if (e.shiftKey) {
+        selectionTX.start = mouseTX
+        selectionTX.end = undefined
+      } else {
+        selectionTX.start = undefined
+        selectionTX.end = undefined
+      }
       updateMouse(e)
-      renderMainCanvas()
-    }
-  }}
-  onmouseenter={(e) => {
-    if (e.button === 0) {
-      mouseOver = true
-      renderMainCanvas()
-    }
-  }}
-  onmouseleave={(e) => {
-    if (e.button === 0) {
-      mouseOver = false
       renderMainCanvas()
     }
   }}
@@ -393,48 +453,55 @@
     updateMouse(e)
     if (analyzeMode) renderMainCanvas()
   }}
-  onblur={() => {
-    analyzeMode = false
-  }}
 ></canvas>
 {#if debug}
   <div class="self-center">
     Rendering time {renderTime.toFixed(2)} ms | {((renderTime * 1000000 * scale * scale) / (width * height)).toFixed(0)}
-    ns per pixel | {mouse.x}, {mouse.y}
+    ns per pixel | {mouseXY.x}, {mouseXY.y}
   </div>
 {/if}
 <div
-  class="fixed bottom-0 left-0 right-0 text-nowrap rounded-md bg-slate-200 px-2 py-1 font-mono text-sm dark:bg-slate-900 {analyzeMode &&
-  mouseOverInfo.tape != null
+  class="fixed bottom-0 left-0 right-0 text-nowrap rounded-md border bg-slate-200 px-2 py-1 font-mono text-xs dark:bg-slate-900 {analyzeMode
     ? ''
     : 'hidden'}"
-  bind:this={tooltip}
+  bind:this={statusBar}
 >
-  {#if mouseOverInfo.tape != null}
-    <h3 class="mb-1 text-center text-lg font-bold">
-      <div>({mouseOverInfo.t}, {mouseOverInfo.x})</div>
-      <span style="color: {getTmStateColorCss(mouseOverInfo.tape.state)}"
-        >{String.fromCharCode(mouseOverInfo.tape.state + 65)}{mouseOverInfo.tape.read()}</span
-      >
+  {#if selectionRectTX == null}
+    <h3 class="my-1 text-center text-base font-bold">
+      <div>({mouseTX.t}, {mouseTX.x})</div>
+      {@render renderState(mouseOverInfo.tape.state)}{mouseOverInfo.tape.value}
       {#if mouseOverInfo.transition != null}
         &mapsto;
         {mouseOverInfo.transition.symbol}{mouseOverInfo.transition.direction === 1 ? "R" : "L"}<span
           style="color: {getTmStateColorCss(mouseOverInfo.transition.toState)}"
-          >{String.fromCharCode(mouseOverInfo.transition.toState + 65)}</span
+          >{stateToString(mouseOverInfo.transition.toState)}</span
         >
       {/if}
     </h3>
-    <div class="grid grid-cols-[auto_auto] gap-x-4">
-      <div class="text-right font-semibold">Tape size</div>
-      <div class="text-left">{mouseOverInfo.tape.size}</div>
-      <div class="text-right font-semibold">Left edge</div>
-      <div class="text-left">{mouseOverInfo.tape.leftEdge}</div>
-      <div class="text-right font-semibold">Right edge</div>
-      <div class="text-left">{mouseOverInfo.tape.rightEdge}</div>
+    <div class="mb-1 grid grid-cols-[auto_auto] gap-x-4">
+      <div class="text-right font-semibold">Tape extent</div>
+      <div class="text-left">
+        [{mouseOverInfo.tape.leftEdge}, {mouseOverInfo.tape.rightEdge}] (size = {mouseOverInfo.tape.size})
+      </div>
+      {#if mouseOverInfo.tape.size < 1000}
+        <div class="text-right font-semibold">Tape</div>
+        <div class="text-left">{mouseOverInfo.tape.toString()}</div>
+      {/if}
       <div class="text-right font-semibold">Head</div>
       <div class="text-left">{mouseOverInfo.tape.head}</div>
-      <div class="text-right font-semibold">Tape[{mouseOverInfo.x}]</div>
-      <div class="text-left">{mouseOverInfo.tape.at(mouseOverInfo.x)}</div>
+      <div class="text-right font-semibold">Symbol under mouse</div>
+      <div class="text-left">{mouseOverInfo.tape.at(mouseTX.x)}</div>
+    </div>
+  {:else}
+    <h3 class="my-1 text-center text-base font-bold">
+      <div>
+        ({selectionRectTX.t}, {selectionRectTX.x}) &rightarrow; ({selectionRectTX.t + selectionRectTX.h - 1}, {selectionRectTX.x +
+          selectionRectTX.w -
+          1}) <span class="text-gray-300 dark:text-gray-800">|</span> h = {selectionRectTX.h}, w = {selectionRectTX.w}
+      </div>
+    </h3>
+    <div>
+      {@render macroTransition(m.getMacroTransition(selectionRectTX.t, selectionRectTX.t + selectionRectTX.h))}
     </div>
   {/if}
 </div>

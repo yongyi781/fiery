@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { getTmStateColorCss, type TMRule } from "./turing"
+  import { getTmStateColorCss, stateToString, type TMRule } from "./turing"
 
   interface Props {
     rule: TMRule
@@ -16,7 +16,7 @@
     {#each rule as row, i}
       <div>
         {#each row as tr, j}
-          <span style="color: {getTmStateColorCss(i)};">{String.fromCharCode(i + 65)}{j}</span>
+          <span style="color: {getTmStateColorCss(i)};">{stateToString(i)}{j}</span>
           &mapsto;
           <input
             type="number"
@@ -51,7 +51,7 @@
               }
             }}
           /><input
-            value={tr.toState === -1 ? "-" : String.fromCharCode(tr.toState + 65)}
+            value={stateToString(tr.toState)}
             class="w-5 border border-blue-200 bg-transparent py-1 text-center outline-none dark:border-blue-800"
             style="color: {getTmStateColorCss(tr.toState)};"
             maxlength="1"
