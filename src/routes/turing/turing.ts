@@ -116,11 +116,9 @@ export class Tape {
   }
 
   getSegment(start: number, end: number): TapeSegment {
-    return {
-      data: this.data.slice(start + this.offset, end + this.offset),
-      head: this.head - start,
-      state: this.state
-    }
+    const data = new Uint8Array(end - start + 1)
+    for (let i = start; i <= end; ++i) data[i - start] = this.at(i)
+    return { data, head: this.head - start, state: this.state }
   }
 
   /** Returns the tape in the format [state]xxxx>xxxx. */
