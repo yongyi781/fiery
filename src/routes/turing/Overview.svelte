@@ -61,11 +61,17 @@
 
   function getColor(tape: Tape, start: number, end: number, nSymbols: number) {
     let res = 0
-    // To handle translated cyclers whose tapes grow linearly
-    const step = Math.ceil((end - start) / 50)
-    const n = Math.floor((end - start) / step)
-    for (let i = start; i < end; i += step) res += (tape.at(i) / (nSymbols - 1)) ** 2.2
-    return (res / n) ** (1 / 2.2) * maxSymbolColor
+    const h = nSymbols - 1
+    if (end - start < 512) {
+      for (let i = start; i < end; ++i) res += tape.at(i) ** 2.2
+      return ((res / (end - start)) ** (1 / 2.2) * maxSymbolColor) / h
+    } else {
+      // To handle translated cyclers whose tapes grow linearly without being super slow
+      const step = Math.ceil((end - start) / 50)
+      const n = Math.floor((end - start) / step)
+      for (let i = start; i < end; i += step) res += tape.at(i) ** 2.2
+      return ((res / n) ** (1 / 2.2) * maxSymbolColor) / h
+    }
   }
 
   function averageTapes(tapes: Tape[], f: (tape: Tape) => number) {

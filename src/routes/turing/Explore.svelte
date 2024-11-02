@@ -257,7 +257,7 @@
 
 {#snippet macroTransition(mt: MacroTransition)}
   <p class="text-center text-sm">
-    {@render tapeSegment(mt.from)} &rightarrow;({mt.steps}) {@render tapeSegment(mt.to)}
+    {@render tapeSegment(mt.from)} &mapsto;({mt.steps}) {@render tapeSegment(mt.to)}
   </p>
 {/snippet}
 
