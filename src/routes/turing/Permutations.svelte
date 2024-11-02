@@ -16,16 +16,17 @@
     return true
   }
 
-  function* allPermutations(n: number): Generator<number[]> {
+  function allPermutations(n: number): number[][] {
     if (n === 0) {
-      yield []
-      return
+      return [[]]
     }
+    let res = []
     for (let i = 0; i < n; ++i) {
       for (const perm of allPermutations(n - 1)) {
-        yield [i, ...perm.map((j) => (j >= i ? j + 1 : j))]
+        res.push([i, ...perm.map((j) => (j >= i ? j + 1 : j))])
       }
     }
+    return res
   }
 
   function applyPerm(perm: number[], rule: TMRule): TMRule {
@@ -40,12 +41,12 @@
 
   let { rule }: { rule: TMRule } = $props()
 
+  // TODO: permute symbols too
   let result = $derived.by(() => {
     if (rule.length === 0) return []
     const n = rule.length
-    // console.log(formatTMRule(rule))
     return allPermutations(n)
-      .drop(1) // Ignore identity permutation
+      .slice(1)
       .map((perm) => {
         return { perm, s: formatTMRule(applyPerm(perm, rule)) }
       })
@@ -57,7 +58,6 @@
         }
       })
       .filter(({ s }) => isLNF(parseTMRule(s)))
-      .toArray()
   })
 </script>
 
