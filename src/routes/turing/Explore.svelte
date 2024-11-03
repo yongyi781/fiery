@@ -13,6 +13,7 @@
     type Transition,
     type TuringMachineInfo
   } from "./turing"
+  import { Check, Copy } from "lucide-svelte"
 
   interface Props {
     machineInfo: TuringMachineInfo
@@ -95,6 +96,7 @@
       h: Math.abs(end.t - selectionTX.start.t) + 1
     }
   })
+  let copied = $state(false)
 
   function scrollT(delta: number) {
     let d = Math.round((delta * height) / scale)
@@ -257,7 +259,7 @@
 {/snippet}
 
 {#snippet macroTransition(mt: MacroTransition)}
-  <p class="text-center text-sm">
+  <p id="macro-transition" class="text-center text-sm">
     {@render tapeSegment(mt.from)} &mapsto;[{mt.steps}] {@render tapeSegment(mt.to)}
   </p>
 {/snippet}
@@ -423,10 +425,19 @@
         if (analyzeMode && (e.ctrlKey || e.metaKey) && mouseOverInfo != null && mouseTX.t >= 0) {
           e.preventDefault()
           // Copy tape contents
-          m.seek(mouseTX.t)
-          navigator.clipboard.writeText(m.tape.toString()).then(
+          const el = document.querySelector("#macro-transition")
+          let copyText: string
+          if (el == null || el.textContent == null) {
+            m.seek(mouseTX.t)
+            copyText = m.tape.toString()
+          } else copyText = el.textContent
+          navigator.clipboard.writeText(copyText).then(
             () => {
               console.log("Tape contents copied to clipboard.")
+              copied = true
+              setTimeout(() => {
+                copied = false
+              }, 1000)
             },
             (err) => {
               console.error("Could not copy tape contents: ", err)
@@ -504,5 +515,8 @@
     <div>
       {@render macroTransition(m.getMacroTransition(selectionRectTX.t, selectionRectTX.t + selectionRectTX.h))}
     </div>
+  {/if}
+  {#if copied}
+    <div class="absolute bottom-1 right-1 flex items-center"><Copy /><Check color="green" /></div>
   {/if}
 </div>

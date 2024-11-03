@@ -123,7 +123,7 @@
 <div class="mt-3 self-center">
   <Overview {machineInfo} {width} {height} bind:numSteps {quality} interactive {debug} />
   <Input
-    placeholder="Initial tape, e.g. B110101>111"
+    placeholder="Initial tape, e.g. B 110101>111"
     class="font-mono text-xs invalid:focus:ring-red-500"
     bind:value={initialTape.value}
     oninput={(e) => {

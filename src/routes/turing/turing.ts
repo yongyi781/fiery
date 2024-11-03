@@ -57,6 +57,7 @@ export class Tape {
   }
 
   static parse(s: string) {
+    s = s.replaceAll(" ", "").toUpperCase()
     const t = new Tape()
     if (s.length === 0) return t
     t.state = s.charCodeAt(0) - 65
@@ -69,7 +70,7 @@ export class Tape {
       if (s[i] === ">" && !foundCaret) {
         foundCaret = true
         t.offset = i - 1
-      } else if (s.charCodeAt(i) >= 48 && s.charCodeAt(i) < 57) t.data[di++] = s.charCodeAt(i) - 48
+      } else if (s.charCodeAt(i) >= 48 && s.charCodeAt(i) < 58) t.data[di++] = s.charCodeAt(i) - 48
       else return
     }
     t.leftEdge = -t.offset
@@ -123,6 +124,7 @@ export class Tape {
   toString() {
     return (
       stateToString(this.state) +
+      " " +
       this.data.slice(this.leftEdge + this.offset, this.head + this.offset).join("") +
       ">" +
       this.data.slice(this.head + this.offset, this.rightEdge + this.offset + 1).join("")
