@@ -248,7 +248,8 @@
 {/snippet}
 
 {#snippet tapeSegment(s: TapeSegment)}
-  {@render renderState(s.state)}{#if s.head === -1}
+  {@render renderState(s.state)}
+  {#if s.head === -1}
     &lt;{s.data.join("")}
   {:else}
     {s.data.slice(0, s.head).join("")}&gt;{s.data.slice(s.head).join("")}
@@ -257,7 +258,7 @@
 
 {#snippet macroTransition(mt: MacroTransition)}
   <p class="text-center text-sm">
-    {@render tapeSegment(mt.from)} &mapsto;({mt.steps}) {@render tapeSegment(mt.to)}
+    {@render tapeSegment(mt.from)} &mapsto;[{mt.steps}] {@render tapeSegment(mt.to)}
   </p>
 {/snippet}
 

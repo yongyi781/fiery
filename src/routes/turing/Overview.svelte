@@ -2,7 +2,7 @@
   import { goto } from "$app/navigation"
   import { cn } from "$lib/utils"
   import { onMount, untrack } from "svelte"
-  import { formatTMRule, getTmSymbolColor, maxSymbolColor, Tape, TuringMachine, type TuringMachineInfo } from "./turing"
+  import { formatTMRule, getTmSymbolColor, Tape, TuringMachine, type TuringMachineInfo } from "./turing"
   import { turingMachineCache } from "./turing-machine-cache.svelte"
 
   interface Props {
@@ -25,6 +25,7 @@
     debug = false
   }: Props = $props()
 
+  const maxSymbolColor = 192
   let canvas: HTMLCanvasElement
   let ctx: CanvasRenderingContext2D | null
   let imageData: ImageData
@@ -117,7 +118,7 @@
         // 1-1
         for (let x = m.tape.leftEdge; x <= m.tape.rightEdge; ++x) {
           const index = 4 * (i * w + x + xmax)
-          const color = averageTapes(tapes, (tape) => getTmSymbolColor(tape.at(x), nSymbols))
+          const color = averageTapes(tapes, (tape) => getTmSymbolColor(tape.at(x), nSymbols, maxSymbolColor))
           for (let k = 0; k < 3; ++k) imageData.data[index + k] = color
           imageData.data[index + 3] = 255
         }
