@@ -292,7 +292,6 @@
         position.x = x
         position.t = Math.max(0, t)
         scale = newScale
-        console.log(mouseXY)
       }
     } else if (e.altKey) {
       e.preventDefault()

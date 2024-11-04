@@ -22,21 +22,23 @@
 
   const initWidth = Number($page.url.searchParams.get("w")).valueOf()
   const initHeight = Number($page.url.searchParams.get("h")).valueOf()
+  const initScale = Number($page.url.searchParams.get("scale")).valueOf()
   let initCode = data.code
   let code = $state(initCode)
   let machineInfo: TuringMachineInfo = $state({ rule: parseTMRule(initCode) })
-  let scale = $state(Number($page.url.searchParams.get("scale")).valueOf() || 2)
   let width = $state({ value: initWidth })
   if (initWidth === 0) width = localStore("turing-explore-width", 1024)
   let height = $state({ value: initHeight })
   if (initHeight === 0) height = localStore("turing-explore-height", 768)
+  let scale = $state({ value: initScale })
+  if (initScale === 0) scale = localStore("turing-explore-scale", 8)
   let position = $state({
     t: Number($page.url.searchParams.get("t")).valueOf() || 0,
     x: Number($page.url.searchParams.get("x")).valueOf() || 0
   })
   let animate = $state($page.url.searchParams.has("animate"))
   let animateSpeed = $state(Number($page.url.searchParams.get("animateSpeed")).valueOf() || 1)
-  let debug = $page.url.searchParams.has("debug") || dev
+  const debug = $page.url.searchParams.has("debug") || dev
 
   $effect(() => {
     if (machineInfo.rule.length > 0) code = formatTMRule(machineInfo.rule)
@@ -129,7 +131,7 @@
 <Editor bind:rule={machineInfo.rule} />
 <div class="mt-4 flex flex-wrap items-center justify-center gap-1 whitespace-nowrap">
   <Label for="scale">Scale:</Label>
-  <Input type="number" id="scale" class="w-20" min="1" autocomplete="off" bind:value={scale} />
+  <Input type="number" id="scale" class="w-20" min="1" autocomplete="off" bind:value={scale.value} />
   <Label for="width" class="ml-4">Width:</Label>
   <Input type="number" id="width" class="w-20" min={1} max={65535} autocomplete="off" bind:value={width.value} />
   <Label for="height" class="ml-4">Height:</Label>
@@ -149,7 +151,7 @@
 <div class="mt-3 self-center">
   <Explore
     {machineInfo}
-    bind:scale
+    bind:scale={scale.value}
     width={width.value}
     height={height.value}
     bind:position
