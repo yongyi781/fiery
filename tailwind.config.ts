@@ -70,7 +70,7 @@ const config: Config = {
           "Segoe UI Emoji",
           "Noto Color Emoji"
         ],
-        mono: ["Cascadia Code", ...fontFamily.mono]
+        mono: ["Cascadia Mono", ...fontFamily.mono]
       }
     }
   }
