@@ -1,7 +1,7 @@
 import { browser } from "$app/environment"
 
 export class LocalStore<T> {
-  value = $state<T>() as T
+  value = $state() as T
   key = ""
 
   constructor(key: string, value: T) {

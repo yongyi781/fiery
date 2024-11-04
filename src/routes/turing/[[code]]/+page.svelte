@@ -6,6 +6,7 @@
   import * as Dialog from "$lib/components/ui/dialog"
   import { Input } from "$lib/components/ui/input"
   import { Label } from "$lib/components/ui/label"
+  import { localStore } from "$lib/local-store.svelte"
   import { randomChoice } from "$lib/utils"
   import { onMount } from "svelte"
   import Content from "../Content.svelte"
@@ -18,17 +19,18 @@
 
   let { data } = $props()
 
-  const initWidth = Number($page.url.searchParams.get("w")).valueOf() || 512
-  const initNumSteps = Number($page.url.searchParams.get("n")).valueOf() || 65536
+  const initWidth = Number($page.url.searchParams.get("w")).valueOf()
+  const initHeight = Number($page.url.searchParams.get("h")).valueOf()
   let initCode = data.code ?? ""
   let code = $state(initCode)
-  // let rule = $state(parseTMRule(initCode))
   let machineInfo: TuringMachineInfo = $state({ rule: parseTMRule(initCode) })
-  let width = $state(initWidth)
-  let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 512)
-  let numSteps = $state(initNumSteps)
+  let width = $state({ value: initWidth })
+  if (initWidth === 0) width = localStore("turing-overview-width", 512)
+  let height = $state({ value: initHeight })
+  if (initHeight === 0) height = localStore("turing-overview-height", 512)
+  let numSteps = $state(Number($page.url.searchParams.get("n")).valueOf() || 65536)
   let quality = $state(Number($page.url.searchParams.get("q")).valueOf() || 1)
-  let debug = $page.url.searchParams.has("debug") || dev
+  const debug = $page.url.searchParams.has("debug") || dev
 
   $effect(() => {
     if (machineInfo.rule.length > 0) code = formatTMRule(machineInfo.rule)
@@ -112,16 +114,16 @@
 <Editor bind:rule={machineInfo.rule} />
 <div class="mt-4 flex flex-wrap items-center justify-center gap-1 whitespace-nowrap">
   <Label for="width" class="ml-4">Width:</Label>
-  <Input type="number" id="width" min={1} max={65535} class="w-20" autocomplete="off" bind:value={width} />
+  <Input type="number" id="width" min={1} max={65535} class="w-20" autocomplete="off" bind:value={width.value} />
   <Label for="height" class="ml-4">Height:</Label>
-  <Input type="number" id="height" min={1} max={65535} class="w-20" autocomplete="off" bind:value={height} />
+  <Input type="number" id="height" min={1} max={65535} class="w-20" autocomplete="off" bind:value={height.value} />
   <Label for="numSteps" class="ml-4"># steps:</Label>
   <Input type="number" id="numSteps" min={0} class="w-40" autocomplete="off" bind:value={numSteps} />
   <Label for="quality" class="ml-4">Quality:</Label>
   <Input type="number" id="quality" min={1} class="w-20" autocomplete="off" bind:value={quality} />
 </div>
 <div class="mt-3 self-center">
-  <Overview {machineInfo} {width} {height} bind:numSteps {quality} interactive {debug} />
+  <Overview {machineInfo} width={width.value} height={height.value} bind:numSteps {quality} interactive {debug} />
   <Input
     placeholder="Initial tape, e.g. B 110101>111"
     class="font-mono text-xs invalid:focus:ring-red-500"

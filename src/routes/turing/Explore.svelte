@@ -42,9 +42,9 @@
 
   let {
     machineInfo,
-    scale = $bindable(8),
-    width = $bindable(512),
-    height = $bindable(512),
+    width = 1024,
+    height = 768,
+    scale = $bindable(2),
     /** The (t, x) coordinates of the top middle of the canvas. */
     position = $bindable({
       t: 0,

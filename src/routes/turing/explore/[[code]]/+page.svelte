@@ -16,15 +16,20 @@
   import machines from "../../machines-client"
   import { formatTMRule, parseTMRule, rulesEqual, Tape, type TuringMachineInfo } from "../../turing"
   import { turingMachineCache } from "../../turing-machine-cache.svelte"
+  import { localStore } from "$lib/local-store.svelte"
 
   const { data } = $props()
 
+  const initWidth = Number($page.url.searchParams.get("w")).valueOf()
+  const initHeight = Number($page.url.searchParams.get("h")).valueOf()
   let initCode = data.code
   let code = $state(initCode)
   let machineInfo: TuringMachineInfo = $state({ rule: parseTMRule(initCode) })
   let scale = $state(Number($page.url.searchParams.get("scale")).valueOf() || 2)
-  let width = $state(Number($page.url.searchParams.get("w")).valueOf() || 1024)
-  let height = $state(Number($page.url.searchParams.get("h")).valueOf() || 768)
+  let width = $state({ value: initWidth })
+  if (initWidth === 0) width = localStore("turing-explore-width", 1024)
+  let height = $state({ value: initHeight })
+  if (initHeight === 0) height = localStore("turing-explore-height", 768)
   let position = $state({
     t: Number($page.url.searchParams.get("t")).valueOf() || 0,
     x: Number($page.url.searchParams.get("x")).valueOf() || 0
@@ -126,9 +131,9 @@
   <Label for="scale">Scale:</Label>
   <Input type="number" id="scale" class="w-20" min="1" autocomplete="off" bind:value={scale} />
   <Label for="width" class="ml-4">Width:</Label>
-  <Input type="number" id="width" class="w-20" min={1} max={65535} autocomplete="off" bind:value={width} />
+  <Input type="number" id="width" class="w-20" min={1} max={65535} autocomplete="off" bind:value={width.value} />
   <Label for="height" class="ml-4">Height:</Label>
-  <Input type="number" id="height" class="w-20" min={1} max={65535} autocomplete="off" bind:value={height} />
+  <Input type="number" id="height" class="w-20" min={1} max={65535} autocomplete="off" bind:value={height.value} />
   <Label for="t" class="ml-4">t =</Label>
   <Input type="number" id="t" class="w-40" min={0} autocomplete="off" bind:value={position.t} />
   <Label for="x" class="ml-4">x =</Label>
@@ -142,7 +147,16 @@
   />
 </div>
 <div class="mt-3 self-center">
-  <Explore {machineInfo} bind:scale bind:width bind:height bind:position bind:animate bind:animateSpeed {debug} />
+  <Explore
+    {machineInfo}
+    bind:scale
+    width={width.value}
+    height={height.value}
+    bind:position
+    bind:animate
+    bind:animateSpeed
+    {debug}
+  />
   <Input
     placeholder="Initial tape, e.g. B 110101>111"
     class="font-mono text-xs invalid:focus:ring-red-500"
