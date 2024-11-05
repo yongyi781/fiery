@@ -36,8 +36,6 @@
   let mouseX = $state(0)
   let mouseY = $state(0)
   let tooltip: HTMLDivElement
-  /** x-scale of the view, as measured by x-coordinate of the right edge. */
-  let xmax = 0
   let mouseOverInfo = $derived.by(() => {
     const { t, x } = hoverPosition()
     if (t < 0 || t >= numSteps) return null
@@ -82,6 +80,7 @@
     return (res / tapes.length) ** (1 / 2.2)
   }
 
+  /** x-scale of the view, as measured by x-coordinate of the right edge. */
   function getXmax() {
     return Math.max(Math.floor(width / 2), -m.tape.leftEdge, m.tape.rightEdge)
   }
@@ -90,7 +89,7 @@
   function hoverPosition() {
     return {
       t: Math.round((mouseY / height) * numSteps),
-      x: Math.floor(((2 * mouseX) / width - 1) * xmax)
+      x: Math.floor(((2 * mouseX) / width - 1) * getXmax())
     }
   }
 
@@ -100,7 +99,8 @@
     imageData = new ImageData(width, height)
     // Get tape size first
     m.seek(numSteps)
-    xmax = getXmax()
+    const xmax = getXmax()
+    const oneToOne = m.tape.leftEdge >= Math.floor(-(width - 1) / 2) && m.tape.rightEdge <= Math.floor((width - 1) / 2)
     m.seek(0)
     // Non-svelte snapshots for performance
     const w = width
@@ -114,7 +114,7 @@
       const ht = Math.floor((i + 1) * windowHeight)
       const tapes = sampleTapes(lt, ht, q)
       if (m.halted) break
-      if (xmax === Math.floor(w / 2)) {
+      if (oneToOne) {
         // 1-1
         for (let x = m.tape.leftEdge; x <= m.tape.rightEdge; ++x) {
           const index = 4 * (i * w + x + xmax)
