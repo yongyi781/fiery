@@ -146,7 +146,7 @@
           <span class="mr-2 text-gray-600 dark:text-gray-400">0 / Home</span>
           <span class="text-gray-900 dark:text-gray-100">See 65536 steps</span>
           <span class="mr-2 text-gray-600 dark:text-gray-400">1&ndash;9</span>
-          <span class="text-gray-900 dark:text-gray-100">n &mapsto; See 65536 × 2<sup>n</sup> steps</span>
+          <span class="text-gray-900 dark:text-gray-100">n ↦ See 65536 × 2<sup>n</sup> steps</span>
           <span class="mr-2 text-gray-600 dark:text-gray-400">+ / -</span>
           <span class="text-gray-900 dark:text-gray-100">Increase/decrease number of steps</span>
           <hr class="col-span-2" />

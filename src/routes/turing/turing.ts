@@ -2,9 +2,9 @@ export const tmStateColors = [
   [255, 135, 155, 255],
   [255, 196, 88, 255],
   [124, 192, 255, 255],
-  [176, 250, 160, 255],
+  [151, 231, 133, 255],
   [219, 165, 255, 255],
-  [79, 255, 235, 255],
+  [38, 236, 216, 255],
   [195, 197, 79, 255],
   [255, 255, 255, 255],
   [255, 0, 0, 255] // Solid red for halt
@@ -158,8 +158,7 @@ export function parseTMRule(s: string) {
         })
       else {
         const symbol = line.charCodeAt(i) - "0".charCodeAt(0)
-        if (symbol < 0 || symbol >= nSymbols) return []
-        if (line[i + 1] !== "R" && line[i + 1] !== "L") return []
+        if (symbol < 0 || symbol >= nSymbols || (line[i + 1] !== "L" && line[i + 1] !== "R")) return []
 
         tr.push({
           symbol,

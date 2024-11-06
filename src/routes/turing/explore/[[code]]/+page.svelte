@@ -7,6 +7,7 @@
   import { Input } from "$lib/components/ui/input"
   import { Label } from "$lib/components/ui/label"
   import { Switch } from "$lib/components/ui/switch"
+  import { localStore } from "$lib/local-store.svelte"
   import { randomChoice } from "$lib/utils"
   import { onMount } from "svelte"
   import Content from "../../Content.svelte"
@@ -16,7 +17,6 @@
   import machines from "../../machines-client"
   import { formatTMRule, parseTMRule, rulesEqual, Tape, type TuringMachineInfo } from "../../turing"
   import { turingMachineCache } from "../../turing-machine-cache.svelte"
-  import { localStore } from "$lib/local-store.svelte"
 
   const { data } = $props()
 
@@ -186,7 +186,7 @@
           <span class="mr-2 text-gray-600 dark:text-gray-400">Shift + 0 / Insert</span>
           <span class="text-gray-900 dark:text-gray-100">Jump to x-coordinate 0</span>
           <span class="mr-2 text-gray-600 dark:text-gray-400">1&ndash;9</span>
-          <span class="text-gray-900 dark:text-gray-100">n &mapsto; Seek to 10<sup>n</sup> steps</span>
+          <span class="text-gray-900 dark:text-gray-100">n ↦ Seek to 10<sup>n</sup> steps</span>
           <span class="mr-2 text-gray-600 dark:text-gray-400">Ctrl + 0&ndash;9</span>
           <span class="text-gray-900 dark:text-gray-100">Set zoom level</span>
           <span class="mr-2 text-gray-600 dark:text-gray-400">Alt + 0&ndash;9</span>

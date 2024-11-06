@@ -1,4 +1,6 @@
 <script lang="ts">
+  import TapeSpan from "./TapeSpan.svelte"
+
   import { cn } from "$lib/utils"
   import { onMount, untrack } from "svelte"
   import {
@@ -14,6 +16,7 @@
     type TuringMachineInfo
   } from "./turing"
   import { Check, Copy } from "lucide-svelte"
+  import StateSpan from "./StateSpan.svelte"
 
   interface Props {
     machineInfo: TuringMachineInfo
@@ -245,22 +248,9 @@
   })
 </script>
 
-{#snippet renderState(s: number)}
-  <span style="color: {getTmStateColorCss(s)}">{stateToString(s)}</span>
-{/snippet}
-
-{#snippet tapeSegment(s: TapeSegment)}
-  {@render renderState(s.state)}
-  {#if s.head === -1}
-    &lt;{s.data.join("")}
-  {:else}
-    {s.data.slice(0, s.head).join("")}&gt;{s.data.slice(s.head).join("")}
-  {/if}
-{/snippet}
-
 {#snippet macroTransition(mt: MacroTransition)}
   <p id="macro-transition" class="text-center text-sm">
-    {@render tapeSegment(mt.from)} &mapsto;[{mt.steps}] {@render tapeSegment(mt.to)}
+    <TapeSpan tape={mt.from} /> →[{mt.steps}] <TapeSpan tape={mt.to} />
   </p>
 {/snippet}
 
@@ -480,10 +470,9 @@
   {#if selectionRectTX == null}
     <h3 class="my-1 text-center text-base font-bold">
       <div>({mouseTX.t}, {mouseTX.x})</div>
-      {@render renderState(mouseOverInfo.tape.state)}{mouseOverInfo.tape.value}
+      <StateSpan state={mouseOverInfo.tape.state} />{mouseOverInfo.tape.value}
       {#if mouseOverInfo.transition != null}
-        &mapsto;
-        {mouseOverInfo.transition.symbol}{mouseOverInfo.transition.direction === 1 ? "R" : "L"}<span
+        → {mouseOverInfo.transition.symbol}{mouseOverInfo.transition.direction === 1 ? "R" : "L"}<span
           style="color: {getTmStateColorCss(mouseOverInfo.transition.toState)}"
           >{stateToString(mouseOverInfo.transition.toState)}</span
         >
@@ -496,7 +485,9 @@
       </div>
       {#if mouseOverInfo.tape.size < 1000}
         <div class="text-right font-semibold">Tape</div>
-        <div class="truncate">{mouseOverInfo.tape.toString()}</div>
+        <div class="truncate">
+          <TapeSpan tape={mouseOverInfo.tape.getSegment(mouseOverInfo.tape.leftEdge, mouseOverInfo.tape.rightEdge)} />
+        </div>
       {/if}
       <div class="text-right font-semibold">Head</div>
       <div>{mouseOverInfo.tape.head}</div>

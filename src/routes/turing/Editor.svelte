@@ -17,7 +17,7 @@
       <div>
         {#each row as tr, j}
           <span style="color: {getTmStateColorCss(i)};">{stateToString(i)}{j}</span>
-          &mapsto;
+          →
           <input
             type="number"
             bind:value={tr.symbol}
