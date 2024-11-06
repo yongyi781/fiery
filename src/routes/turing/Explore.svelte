@@ -291,10 +291,10 @@
       e.preventDefault()
       if (e.deltaX !== 0) {
         // Probably using trackpad...
-        scrollX(e.deltaX / 2000)
+        scrollX(e.deltaX / 6000)
         scrollT(e.deltaY / 750)
       } else {
-        if (e.shiftKey) scrollX(e.deltaY / 2000)
+        if (e.shiftKey) scrollX(e.deltaY / 6000)
         else scrollT(e.deltaY / 750)
       }
     }
@@ -304,22 +304,18 @@
       case "ArrowUp":
         e.preventDefault()
         scrollT(-(2 ** (-3 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0))))
-
         break
       case "ArrowDown":
         e.preventDefault()
         scrollT(2 ** (-3 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0)))
-
         break
       case "ArrowLeft":
         e.preventDefault()
-        scrollX(-(2 ** (-4 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0))))
-
+        scrollX(-(2 ** (-5 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0))))
         break
       case "ArrowRight":
         e.preventDefault()
-        scrollX(2 ** (-4 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0)))
-
+        scrollX(2 ** (-5 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0)))
         break
       case "PageUp":
         e.preventDefault()
