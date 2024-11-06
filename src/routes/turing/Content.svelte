@@ -20,7 +20,7 @@
     <h1 class="text-3xl font-bold">Collections</h1>
     <ul class="ml-8 list-disc">
       <!-- Hard-coded so user does not have to download huge collections file... -->
-      {#each ["skelets", "2", "3", "4-tcyclers", "4-spaghettis", "bb6-holdouts"] as key}
+      {#each ["skelets", "2", "3", "4-tcyclers", "4-chaotic-counters", "4-dekaheptoids", "4-irregular-bells", "4-fractals", "4-spaghettis", "bb6-holdouts"] as key}
         <li><a href="/turing/batch/{key}" class="text-cyan-500 hover:underline">{key}</a></li>
       {/each}
     </ul>

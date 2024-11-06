@@ -120,14 +120,16 @@ export class Tape {
     return { data, head: this.head - start, state: this.state }
   }
 
-  /** Returns the tape in the format [state]xxxx>xxxx. */
+  /** Returns the tape in the format [state] xxxx>xxxx. */
   toString() {
     return (
       stateToString(this.state) +
       " " +
       this.data.slice(this.leftEdge + this.offset, this.head + this.offset).join("") +
-      ">" +
-      this.data.slice(this.head + this.offset, this.rightEdge + this.offset + 1).join("")
+      " >" +
+      this.value +
+      " " +
+      this.data.slice(this.head + this.offset + 1, this.rightEdge + this.offset + 1).join("")
     )
   }
 }

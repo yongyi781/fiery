@@ -491,17 +491,17 @@
     </h3>
     <div class="mb-1 grid grid-cols-[auto_auto] gap-x-4">
       <div class="text-right font-semibold">Tape extent</div>
-      <div class="text-left">
+      <div>
         [{mouseOverInfo.tape.leftEdge}, {mouseOverInfo.tape.rightEdge}] (size = {mouseOverInfo.tape.size})
       </div>
       {#if mouseOverInfo.tape.size < 1000}
         <div class="text-right font-semibold">Tape</div>
-        <div class="text-left">{mouseOverInfo.tape.toString()}</div>
+        <div class="truncate">{mouseOverInfo.tape.toString()}</div>
       {/if}
       <div class="text-right font-semibold">Head</div>
-      <div class="text-left">{mouseOverInfo.tape.head}</div>
+      <div>{mouseOverInfo.tape.head}</div>
       <div class="text-right font-semibold">Symbol under mouse</div>
-      <div class="text-left">{mouseOverInfo.tape.at(mouseTX.x)}</div>
+      <div>{mouseOverInfo.tape.at(mouseTX.x)}</div>
     </div>
   {:else}
     <h3 class="my-1 text-center text-base font-bold">

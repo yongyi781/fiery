@@ -289,12 +289,10 @@
       ({mouseOverInfo.t}, {mouseOverInfo.x})
     </h3>
     <div class="grid grid-cols-[auto_auto] gap-x-4 font-mono text-sm">
-      <div class="text-right font-semibold">Tape size</div>
-      <div class="text-left">{mouseOverInfo.tape.size}</div>
-      <div class="text-right font-semibold">Left edge</div>
-      <div class="text-left">{mouseOverInfo.tape.leftEdge}</div>
-      <div class="text-right font-semibold">Right edge</div>
-      <div class="text-left">{mouseOverInfo.tape.rightEdge}</div>
+      <div class="text-right font-semibold">Tape extent</div>
+      <div>
+        [{mouseOverInfo.tape.leftEdge}, {mouseOverInfo.tape.rightEdge}] (size = {mouseOverInfo.tape.size})
+      </div>
     </div>
   {/if}
 </div>
