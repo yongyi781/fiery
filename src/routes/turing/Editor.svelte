@@ -1,5 +1,6 @@
 <script lang="ts">
   import { mode } from "mode-watcher"
+  import StateSpan from "./StateSpan.svelte"
   import { getTmStateColorCss, stateToString, type TMRule } from "./turing"
 
   interface Props {
@@ -16,7 +17,7 @@
   {#each rule as row, i}
     <div>
       {#each row as tr, j}
-        <span style="color: {getTmStateColorCss(i, $mode)};">{stateToString(i)}{j}</span>
+        <StateSpan state={i} />{j}
         →
         <input
           type="number"
@@ -41,13 +42,13 @@
           autocomplete="off"
           spellcheck="false"
           oninput={(e) => {
-            tr.direction = e.currentTarget.value === "L" ? -1 : 1
+            tr.direction = e.currentTarget.value === "R" ? 1 : -1
           }}
           onkeydown={(e) => {
             if (e.key === "ArrowUp" || e.key === "ArrowLeft" || e.key === "ArrowDown" || e.key === "ArrowRight") {
               e.preventDefault()
               tr.direction = -tr.direction as 1 | -1
-              e.currentTarget.value = tr.direction === -1 ? "L" : "R"
+              e.currentTarget.value = tr.direction === 1 ? "R" : "L"
             }
           }}
         /><input
@@ -58,18 +59,24 @@
           autocomplete="off"
           spellcheck="false"
           oninput={(e) => {
-            const s = e.currentTarget.value.charCodeAt(0)
-            tr.toState = s === 45 ? -1 : s - 65
+            if (e.currentTarget.value.length !== 1) {
+              e.currentTarget.setCustomValidity("Invalid state")
+            } else {
+              e.currentTarget.setCustomValidity("")
+              e.currentTarget.value = e.currentTarget.value.toUpperCase()
+              const s = e.currentTarget.value.charCodeAt(0)
+              tr.toState = s === 45 ? -1 : s - 65
+            }
           }}
           onkeydown={(e) => {
             if (e.key === "ArrowUp") {
               e.preventDefault()
-              if (tr.toState === 25) tr.toState = 0
+              if (tr.toState < 0 || tr.toState >= rule.length) tr.toState = 0
               else if (tr.toState === rule.length - 1) tr.toState = 25
               else ++tr.toState
             } else if (e.key === "ArrowDown") {
               e.preventDefault()
-              if (tr.toState === 25) tr.toState = rule.length - 1
+              if (tr.toState < 0 || tr.toState >= rule.length) tr.toState = rule.length - 1
               else if (tr.toState === 0) tr.toState = 25
               else --tr.toState
             }

@@ -3,14 +3,11 @@
 
   import { cn } from "$lib/utils"
   import { Check, Copy } from "lucide-svelte"
-  import { mode } from "mode-watcher"
   import { onMount, untrack } from "svelte"
   import StateSpan from "./StateSpan.svelte"
   import {
     getTmStateColor,
-    getTmStateColorCss,
     getTmSymbolColor,
-    stateToString,
     Tape,
     TuringMachine,
     type MacroTransition,
@@ -484,10 +481,9 @@
       <div>({mouseTX.t}, {mouseTX.x})</div>
       <StateSpan state={mouseOverInfo.tape.state} />{mouseOverInfo.tape.value}
       {#if mouseOverInfo.transition != null}
-        → {mouseOverInfo.transition.symbol}{mouseOverInfo.transition.direction === 1 ? "R" : "L"}<span
-          style="color: {getTmStateColorCss(mouseOverInfo.transition.toState, $mode)}"
-          >{stateToString(mouseOverInfo.transition.toState)}</span
-        >
+        → {mouseOverInfo.transition.symbol}{mouseOverInfo.transition.direction === 1 ? "R" : "L"}<StateSpan
+          state={mouseOverInfo.transition.toState}
+        />
       {/if}
     </h3>
     <div class="mb-1 grid grid-cols-[auto_auto] gap-x-4">
