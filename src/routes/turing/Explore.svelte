@@ -219,10 +219,12 @@
   function draw(time: DOMHighResTimeStamp) {
     const dtime = Math.min(1000, time - prevTime) // Cap it to a second to prevent runaway slowdown at high animation speeds.
     const stepsPerMs = animateSpeed / 1000
-    const dsteps = Math.max(0, Math.floor(dtime * stepsPerMs))
-    position.t = Math.max(0, Math.floor(position.t + dsteps))
+    if (stepsPerMs !== 0) {
+      const dsteps = Math.trunc(dtime * stepsPerMs)
+      position.t = Math.max(0, Math.floor(position.t + dsteps))
 
-    prevTime += Math.floor((time - prevTime) * stepsPerMs) / stepsPerMs
+      prevTime += Math.trunc((time - prevTime) * stepsPerMs) / stepsPerMs
+    }
     if (animate) requestAnimationFrame(draw)
   }
 
@@ -466,7 +468,7 @@
   }}
 ></canvas>
 {#if debug}
-  <div class="self-center">
+  <div>
     Rendering time {renderTime.toFixed(2)} ms | {((renderTime * 1000000 * scale * scale) / (width * height)).toFixed(0)}
     ns per pixel | {mouseXY.x}, {mouseXY.y}
   </div>
