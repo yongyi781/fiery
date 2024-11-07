@@ -21,9 +21,10 @@ export function getTmStateColor(state: number) {
   return tmStateColors[state]
 }
 
-export function getTmStateColorCss(state: number) {
+export function getTmStateColorCss(state: number, mode: "light" | "dark" | undefined = "dark") {
   const res = getTmStateColor(state)
-  return `rgb(${res[0]}, ${res[1]}, ${res[2]})`
+  if (mode === "light") return `rgb(${res[0] * 0.8} ${res[1] * 0.8} ${res[2] * 0.8})`
+  return `rgb(${res[0]} ${res[1]} ${res[2]})`
 }
 
 export type Transition = {

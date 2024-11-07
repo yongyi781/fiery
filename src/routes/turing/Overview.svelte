@@ -146,7 +146,7 @@
 
     if (analyzeMode && mouseOver) {
       ctx.globalCompositeOperation = "source-over"
-      ctx.fillStyle = "rgba(192, 220, 255, 0.5)"
+      ctx.fillStyle = "rgb(192 220 255 / 0.5)"
       ctx.fillRect(0, mouseY, canvas.width, 1)
     }
   }

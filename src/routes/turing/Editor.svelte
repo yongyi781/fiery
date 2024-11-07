@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { mode } from "mode-watcher"
   import { getTmStateColorCss, stateToString, type TMRule } from "./turing"
 
   interface Props {
@@ -16,7 +17,7 @@
     {#each rule as row, i}
       <div>
         {#each row as tr, j}
-          <span style="color: {getTmStateColorCss(i)};">{stateToString(i)}{j}</span>
+          <span style="color: {getTmStateColorCss(i, $mode)};">{stateToString(i)}{j}</span>
           →
           <input
             type="number"
@@ -53,7 +54,7 @@
           /><input
             value={stateToString(tr.toState)}
             class="w-5 border border-blue-200 bg-transparent py-1 text-center outline-none dark:border-blue-800"
-            style="color: {getTmStateColorCss(tr.toState)};"
+            style="color: {getTmStateColorCss(tr.toState, $mode)};"
             maxlength="1"
             autocomplete="off"
             spellcheck="false"

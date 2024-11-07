@@ -2,7 +2,10 @@
   import TapeSpan from "./TapeSpan.svelte"
 
   import { cn } from "$lib/utils"
+  import { Check, Copy } from "lucide-svelte"
+  import { mode } from "mode-watcher"
   import { onMount, untrack } from "svelte"
+  import StateSpan from "./StateSpan.svelte"
   import {
     getTmStateColor,
     getTmStateColorCss,
@@ -11,12 +14,9 @@
     Tape,
     TuringMachine,
     type MacroTransition,
-    type TapeSegment,
     type Transition,
     type TuringMachineInfo
   } from "./turing"
-  import { Check, Copy } from "lucide-svelte"
-  import StateSpan from "./StateSpan.svelte"
 
   interface Props {
     machineInfo: TuringMachineInfo
@@ -54,6 +54,7 @@
       x: 0
     }),
     animate = $bindable(false),
+    /** Animation speed in steps per second. */
     animateSpeed = $bindable(1),
     debug = false
   }: Props = $props()
@@ -72,6 +73,7 @@
   // svelte-ignore non_reactive_update
   let m = new TuringMachine() // Non-proxy version.
   let renderTime = $state(0)
+  let prevTime: DOMHighResTimeStamp
   let analyzeMode = $state(false)
   /** Canvas coordinates of the mouse. */
   let mouseXY = $state({ x: 0, y: 0 })
@@ -179,11 +181,12 @@
     if (analyzeMode) {
       const { x, y } = toScreen(mouseTX)
       ctx.globalCompositeOperation = "source-over"
-      ctx.fillStyle = "rgba(192, 220, 255, 0.5)"
       ctx.lineWidth = 2
       if (selectionRectTX == null) {
-        ctx.fillRect(x, 0, scale, canvas.height)
-        ctx.fillRect(0, y, canvas.width, scale)
+        ctx.strokeStyle = "rgb(192 220 255 / 0.2)"
+        ctx.strokeRect(0, y, canvas.width, scale)
+        ctx.strokeStyle = "rgb(192 220 255 / 0.8)"
+        ctx.strokeRect(x, y, scale, scale)
       } else {
         let { x: x1, y: y1 } = toScreen(selectionRectTX)
         let { x: x2, y: y2 } = toScreen({
@@ -194,8 +197,11 @@
         y1 = Math.min(height, Math.max(-1, y1))
         x2 = Math.min(width, Math.max(-1, x2))
         y2 = Math.min(height, Math.max(-1, y2))
-        ctx.strokeStyle = "rgb(192, 220, 255)"
+        ctx.strokeStyle = "rgb(192 220 255 / 0.2)"
+        ctx.strokeRect(0, y1, canvas.width, y2 - y1)
+        ctx.strokeStyle = "rgb(192 220 255 / 0.8)"
         ctx.strokeRect(x1, y1, x2 - x1, y2 - y1)
+        ctx.fillStyle = "rgb(192 220 255 / 0.4)"
         ctx.fillRect(x1, y1, x2 - x1, y2 - y1)
       }
 
@@ -210,8 +216,13 @@
     }
   }
 
-  function draw() {
-    position.t = Math.max(0, position.t + animateSpeed)
+  function draw(time: DOMHighResTimeStamp) {
+    const dtime = Math.min(1000, time - prevTime) // Cap it to a second to prevent runaway slowdown at high animation speeds.
+    const speed = animateSpeed / 1000
+    const dt = Math.max(0, Math.floor(dtime * speed))
+    position.t = Math.max(0, Math.round(position.t + dt))
+
+    prevTime += dt / speed
     if (animate) requestAnimationFrame(draw)
   }
 
@@ -243,7 +254,10 @@
     })
 
     $effect(() => {
-      if (animate) requestAnimationFrame(draw)
+      if (animate) {
+        prevTime = performance.now()
+        requestAnimationFrame(draw)
+      }
     })
   })
 </script>
@@ -469,22 +483,25 @@
       <StateSpan state={mouseOverInfo.tape.state} />{mouseOverInfo.tape.value}
       {#if mouseOverInfo.transition != null}
         → {mouseOverInfo.transition.symbol}{mouseOverInfo.transition.direction === 1 ? "R" : "L"}<span
-          style="color: {getTmStateColorCss(mouseOverInfo.transition.toState)}"
+          style="color: {getTmStateColorCss(mouseOverInfo.transition.toState, $mode)}"
           >{stateToString(mouseOverInfo.transition.toState)}</span
         >
       {/if}
     </h3>
     <div class="mb-1 grid grid-cols-[auto_auto] gap-x-4">
+      <div class="text-right font-semibold">Tape</div>
+      <div class="truncate">
+        <TapeSpan
+          tape={mouseOverInfo.tape.getSegment(
+            mouseOverInfo.tape.leftEdge,
+            Math.min(mouseOverInfo.tape.leftEdge + 150, mouseOverInfo.tape.rightEdge)
+          )}
+        />
+      </div>
       <div class="text-right font-semibold">Tape extent</div>
       <div>
         [{mouseOverInfo.tape.leftEdge}, {mouseOverInfo.tape.rightEdge}] (size = {mouseOverInfo.tape.size})
       </div>
-      {#if mouseOverInfo.tape.size < 1000}
-        <div class="text-right font-semibold">Tape</div>
-        <div class="truncate">
-          <TapeSpan tape={mouseOverInfo.tape.getSegment(mouseOverInfo.tape.leftEdge, mouseOverInfo.tape.rightEdge)} />
-        </div>
-      {/if}
       <div class="text-right font-semibold">Head</div>
       <div>{mouseOverInfo.tape.head}</div>
       <div class="text-right font-semibold">Symbol under mouse</div>

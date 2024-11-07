@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { mode } from "mode-watcher"
   import { getTmStateColorCss, stateToString } from "./turing"
 
   interface Props {
@@ -8,4 +9,4 @@
   let { state }: Props = $props()
 </script>
 
-<span style="color: {getTmStateColorCss(state)}">{stateToString(state)}</span>
+<span style="color: {getTmStateColorCss(state, $mode)}">{stateToString(state)}</span>
