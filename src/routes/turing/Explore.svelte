@@ -218,11 +218,11 @@
 
   function draw(time: DOMHighResTimeStamp) {
     const dtime = Math.min(1000, time - prevTime) // Cap it to a second to prevent runaway slowdown at high animation speeds.
-    const speed = animateSpeed / 1000
-    const dt = Math.max(0, Math.floor(dtime * speed))
-    position.t = Math.max(0, Math.round(position.t + dt))
+    const stepsPerMs = animateSpeed / 1000
+    const dsteps = Math.max(0, Math.floor(dtime * stepsPerMs))
+    position.t = Math.max(0, Math.floor(position.t + dsteps))
 
-    prevTime += dt / speed
+    prevTime += Math.floor((time - prevTime) * stepsPerMs) / stepsPerMs
     if (animate) requestAnimationFrame(draw)
   }
 
@@ -317,19 +317,19 @@
     switch (e.key) {
       case "ArrowUp":
         e.preventDefault()
-        scrollT(-(2 ** (-3 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0))))
+        scrollT(-(2 ** (-3 + (e.shiftKey ? 2 : 0) + (e.ctrlKey || e.metaKey ? 2 : 0))))
         break
       case "ArrowDown":
         e.preventDefault()
-        scrollT(2 ** (-3 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0)))
+        scrollT(2 ** (-3 + (e.shiftKey ? 2 : 0) + (e.ctrlKey || e.metaKey ? 2 : 0)))
         break
       case "ArrowLeft":
         e.preventDefault()
-        scrollX(-(2 ** (-5 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0))))
+        scrollX(-(2 ** (-5 + (e.shiftKey ? 2 : 0) + (e.ctrlKey || e.metaKey ? 2 : 0))))
         break
       case "ArrowRight":
         e.preventDefault()
-        scrollX(2 ** (-5 + (e.shiftKey ? 1 : 0) + (e.ctrlKey || e.metaKey ? 1 : 0)))
+        scrollX(2 ** (-5 + (e.shiftKey ? 2 : 0) + (e.ctrlKey || e.metaKey ? 2 : 0)))
         break
       case "PageUp":
         e.preventDefault()
