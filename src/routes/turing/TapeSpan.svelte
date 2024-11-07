@@ -22,7 +22,7 @@
     {tape.data.join("")}<span class="ring-1" style="--tw-ring-color: {getTmStateColorCss(tape.state, $mode)}">&gt;</span
     >
   {:else}
-    {tape.data.slice(0, tape.head).join("")}<span class="sr-only">&gt;</span><span
+    {tape.data.slice(0, tape.head).join("")}<span class="text-[0] leading-none">&gt;</span><span
       class="ring-1"
       style="--tw-ring-color: {getTmStateColorCss(tape.state, $mode)}">{tape.data[tape.head]}</span
     >{tape.data.slice(tape.head + 1).join("")}
