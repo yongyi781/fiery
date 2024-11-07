@@ -80,14 +80,15 @@
   />
 </svelte:head>
 
-<div class="flex flex-wrap items-center justify-center gap-1">
-  <Label for="code" class="text-nowrap"
-    >Code in <a
+<div class="flex flex-col flex-wrap items-center justify-center gap-x-1 md:flex-row">
+  <Label for="code" class="text-nowrap">
+    Code in
+    <a
       class="text-cyan-500 hover:underline"
       href="https://discuss.bbchallenge.org/t/standard-tm-text-format/60"
       target="_blank">standard format</a
-    >:</Label
-  >
+    >:
+  </Label>
   <Input
     id="code"
     class="w-96 font-mono text-sm invalid:focus:ring-red-500"
@@ -109,20 +110,30 @@
       goto(`/turing/${randomChoice(machines)}`, { keepFocus: true })
     }}>Random</Button
   >
-  <Button variant="outline" href="/turing/explore/{code}" class="ml-4">Explore</Button>
+  <Button class="w-24" href="/turing/explore/{code}">Explore</Button>
 </div>
-<Editor bind:rule={machineInfo.rule} />
-<div class="mt-4 flex flex-wrap items-center justify-center gap-1 whitespace-nowrap">
-  <Label for="width" class="ml-4">Width:</Label>
-  <Input type="number" id="width" min={1} max={65535} class="w-20" autocomplete="off" bind:value={width.value} />
-  <Label for="height" class="ml-4">Height:</Label>
-  <Input type="number" id="height" min={1} max={65535} class="w-20" autocomplete="off" bind:value={height.value} />
-  <Label for="numSteps" class="ml-4"># steps:</Label>
-  <Input type="number" id="numSteps" min={0} class="w-40" autocomplete="off" bind:value={numSteps} />
-  <Label for="quality" class="ml-4">Quality:</Label>
-  <Input type="number" id="quality" min={1} class="w-20" autocomplete="off" bind:value={quality} />
+<div class="mx-auto my-1">
+  <Editor bind:rule={machineInfo.rule} />
 </div>
-<div class="mt-3 self-center">
+<div class="mb-1 flex flex-col flex-wrap items-center justify-center gap-x-1 whitespace-nowrap text-xs md:flex-row">
+  <div class="flex items-center gap-x-1">
+    <Label for="width" class="ml-4 flex items-center gap-x-1">Width:</Label>
+    <Input id="width" type="number" min={1} max={65535} class="w-20" autocomplete="off" bind:value={width.value} />
+  </div>
+  <div class="flex items-center gap-x-1">
+    <Label for="height" class="ml-4 flex items-center gap-x-1">Height:</Label>
+    <Input id="height" type="number" min={1} max={65535} class="w-20" autocomplete="off" bind:value={height.value} />
+  </div>
+  <div class="flex items-center gap-x-1">
+    <Label for="numSteps" class="ml-4 flex items-center gap-x-1"># steps:</Label>
+    <Input id="numSteps" type="number" min={0} class="w-40" autocomplete="off" bind:value={numSteps} />
+  </div>
+  <div class="flex items-center gap-x-1">
+    <Label for="quality" class="ml-4 flex items-center gap-x-1">Quality:</Label>
+    <Input id="quality" type="number" min={1} class="w-20" autocomplete="off" bind:value={quality} />
+  </div>
+</div>
+<div class="mx-auto">
   <Overview {machineInfo} width={width.value} height={height.value} bind:numSteps {quality} interactive {debug} />
   <Input
     placeholder="Initial tape, e.g. B 110101>111"
@@ -134,7 +145,7 @@
     }}
   />
 </div>
-<div class="self-center">
+<div class="mx-auto mt-2">
   <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;
   <Dialog.Root>
     <Dialog.Trigger class="text-cyan-500 hover:underline">Mouse and keyboard shortcuts</Dialog.Trigger>

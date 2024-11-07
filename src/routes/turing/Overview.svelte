@@ -271,7 +271,7 @@
   }}
 ></canvas>
 {#if debug}
-  <div class="self-center">
+  <div>
     Rendering time {renderTime.toFixed(2)} ms | {((renderTime * 1000000) / (width * height)).toFixed(0)}
     ns per pixel
   </div>

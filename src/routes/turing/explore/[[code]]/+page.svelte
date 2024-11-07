@@ -126,29 +126,66 @@
       goto(`/turing/explore/${randomChoice(machines)}`, { keepFocus: true })
     }}>Random</Button
   >
-  <Button variant="outline" href="/turing/{code}" class="ml-4">Overview</Button>
+  <Button href="/turing/{code}" class="w-24">Overview</Button>
 </div>
-<Editor bind:rule={machineInfo.rule} />
-<div class="mt-4 flex flex-wrap items-center justify-center gap-1 whitespace-nowrap">
-  <Label for="scale">Scale:</Label>
-  <Input type="number" id="scale" class="w-20" min="1" autocomplete="off" bind:value={scale.value} />
-  <Label for="width" class="ml-4">Width:</Label>
-  <Input type="number" id="width" class="w-20" min={1} max={65535} autocomplete="off" bind:value={width.value} />
-  <Label for="height" class="ml-4">Height:</Label>
-  <Input type="number" id="height" class="w-20" min={1} max={65535} autocomplete="off" bind:value={height.value} />
-  <Label for="t" class="ml-4">t =</Label>
-  <Input type="number" id="t" class="w-40" min={0} autocomplete="off" bind:value={position.t} />
-  <Label for="x" class="ml-4">x =</Label>
-  <Input type="number" id="x" class="w-20" min={0} autocomplete="off" bind:value={position.x} />
+<div class="mx-auto my-1">
+  <Editor bind:rule={machineInfo.rule} />
+</div>
+<div class="mb-1 flex flex-col flex-wrap items-center justify-center gap-x-4 sm:flex-row">
+  <div class="flex items-center gap-x-1">
+    <Label for="scale" class="flex items-center gap-x-1">Scale:</Label>
+    <Input
+      id="scale"
+      type="number"
+      inputmode="numeric"
+      class="w-20"
+      min="1"
+      autocomplete="off"
+      bind:value={scale.value}
+    />
+  </div>
+  <div class="flex items-center gap-x-1">
+    <Label for="width" class="flex items-center gap-x-1">Width:</Label>
+    <Input
+      id="width"
+      type="number"
+      inputmode="numeric"
+      class="w-20"
+      min={1}
+      max={65535}
+      autocomplete="off"
+      bind:value={width.value}
+    />
+  </div>
+  <div class="flex items-center gap-x-1">
+    <Label for="height" class="flex items-center gap-x-1">Height:</Label>
+    <Input
+      id="height"
+      type="number"
+      inputmode="numeric"
+      class="w-20"
+      min={1}
+      max={65535}
+      autocomplete="off"
+      bind:value={height.value}
+    />
+  </div>
+  <div class="flex items-center gap-x-1">
+    <Label for="t" class="flex items-center gap-x-1">t =</Label>
+    <Input id="t" type="number" inputmode="numeric" class="w-40" min={0} autocomplete="off" bind:value={position.t} />
+  </div>
+  <div class="flex items-center gap-x-1">
+    <Label for="x" class="flex items-center gap-x-1">x =</Label>
+    <Input id="x" type="number" inputmode="numeric" class="w-20" min={0} autocomplete="off" bind:value={position.x} />
+  </div>
   <Button variant="outline" onclick={() => (position = { t: 0, x: 0 })}>Top</Button>
-  <Switch id="animate" class="ml-4" bind:checked={animate} /><Label for="animate">Animate</Label><Input
-    type="number"
-    class="w-24"
-    autocomplete="off"
-    bind:value={animateSpeed}
-  />
+  <div class="flex items-center gap-x-1">
+    <Label for="animate" class="flex items-center gap-x-1">Animate</Label>
+    <Switch id="animate" bind:checked={animate} />
+    <Input type="number" inputmode="numeric" class="w-24" autocomplete="off" bind:value={animateSpeed} />
+  </div>
 </div>
-<div class="mt-3 self-center">
+<div class="mx-auto">
   <Explore
     {machineInfo}
     bind:scale={scale.value}
@@ -170,8 +207,9 @@
     }}
   />
 </div>
-<div class="self-center">
-  <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a> &bullet;
+<div class="mx-auto mt-2">
+  <a class="text-cyan-500 hover:underline" href="https://bbchallenge.org/{code}">See machine on bbchallenge</a>
+  &bullet;
   <Dialog.Root>
     <Dialog.Trigger class="text-cyan-500 hover:underline">Mouse and keyboard shortcuts</Dialog.Trigger>
     <Dialog.Content>
