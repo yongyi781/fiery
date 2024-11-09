@@ -26,7 +26,7 @@
     </ul>
     <p>Note: bb6-holdouts will take about 20 seconds to load.</p>
   </div>
-  {#if rule.length <= 8}
+  {#if rule.length <= 6}
     <!-- Don't calculate permutations with greater than 8 states -->
     <div class="m-2 rounded-sm border bg-slate-100/50 p-4 dark:bg-slate-900/50">
       <h1 class="text-3xl font-bold">Permutations</h1>
