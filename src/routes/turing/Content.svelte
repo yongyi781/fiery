@@ -3,6 +3,25 @@
   import type { TMRule } from "./turing"
 
   let { rule }: { rule: TMRule } = $props()
+
+  const keys = [
+    "skelets",
+    "2-non-tcyclers",
+    "3-bouncers",
+    "3-counters",
+    "3-bells",
+    "4-tcyclers",
+    "4-hard-bouncers",
+    "4-bells",
+    "4-counters",
+    "4-bouncer+x",
+    "4-bounce-counters",
+    "4-cubic-bounce-counters",
+    "4-fractals",
+    "4-chaotic-counters",
+    "4-spaghettis",
+    "bb6-holdouts"
+  ]
 </script>
 
 <div class="mt-6 flex flex-col flex-wrap justify-center lg:flex-row">
@@ -20,7 +39,7 @@
     <h1 class="text-3xl font-bold">Collections</h1>
     <ul class="ml-8 list-disc">
       <!-- Hard-coded so user does not have to download huge collections file... -->
-      {#each ["skelets", "2", "3", "4-tcyclers", "4-chaotic-counters", "4-dekaheptoids", "4-irregular-bells", "4-fractals", "4-spaghettis", "bb6-holdouts"] as key}
+      {#each keys as key}
         <li><a href="/turing/batch/{key}" class="text-cyan-500 hover:underline">{key}</a></li>
       {/each}
     </ul>
