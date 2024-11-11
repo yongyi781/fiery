@@ -2,7 +2,7 @@
   import { goto } from "$app/navigation"
   import { cn } from "$lib/utils"
   import { onMount, untrack } from "svelte"
-  import { formatTMRule, getTmSymbolColor, Tape, TuringMachine, type TuringMachineInfo } from "./turing"
+  import { formatTMRule, Tape, TuringMachine, writeColor, type TuringMachineInfo } from "./turing"
   import { turingMachineCache } from "./turing-machine-cache.svelte"
 
   interface Props {
@@ -58,18 +58,18 @@
     return res
   }
 
-  function getColor(tape: Tape, start: number, end: number, nSymbols: number) {
+  function averageSymbol(tape: Tape, start: number, end: number, nSymbols: number) {
     let res = 0
     const h = nSymbols - 1
     if (end - start < 512) {
       for (let i = start; i < end; ++i) res += tape.at(i) ** 2.2
-      return ((res / (end - start)) ** (1 / 2.2) * maxSymbolColor) / h
+      return (res / (end - start)) ** (1 / 2.2) / h
     } else {
       // To handle translated cyclers whose tapes grow linearly without being super slow
       const step = Math.ceil((end - start) / 50)
       const n = Math.floor((end - start) / step)
       for (let i = start; i < end; i += step) res += tape.at(i) ** 2.2
-      return ((res / n) ** (1 / 2.2) * maxSymbolColor) / h
+      return (res / n) ** (1 / 2.2) / h
     }
   }
 
@@ -116,12 +116,12 @@
       if (m.halted) break
       if (oneToOne) {
         // 1-1
-        for (let x = m.tape.leftEdge; x <= m.tape.rightEdge; ++x) {
-          const index = 4 * (i * w + x + xmax)
-          const color = averageTapes(tapes, (tape) => getTmSymbolColor(tape.at(x), nSymbols, maxSymbolColor))
-          for (let k = 0; k < 3; ++k) imageData.data[index + k] = color
-          imageData.data[index + 3] = 255
-        }
+        for (let x = m.tape.leftEdge; x <= m.tape.rightEdge; ++x)
+          writeColor(
+            imageData,
+            4 * (i * w + x + xmax),
+            averageTapes(tapes, (tape) => tape.at(x) / (nSymbols - 1))
+          )
       } else {
         // Downsample
         for (let j = 0; j < w; ++j) {
@@ -129,10 +129,11 @@
           const hx = Math.floor((j + 1 - Math.floor(w / 2)) * windowWidth)
 
           if (hx < m.tape.leftEdge || lx > m.tape.rightEdge) continue
-          const color = averageTapes(tapes, (tape) => getColor(tape, lx, hx, nSymbols))
-          const index = 4 * (i * w + j)
-          for (let k = 0; k < 3; ++k) imageData.data[index + k] = color
-          imageData.data[index + 3] = 255
+          writeColor(
+            imageData,
+            4 * (i * w + j),
+            averageTapes(tapes, (tape) => averageSymbol(tape, lx, hx, nSymbols))
+          )
         }
       }
     }

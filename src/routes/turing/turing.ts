@@ -10,8 +10,13 @@ export const tmStateColors = [
   [255, 0, 0, 255] // Solid red for halt
 ]
 
-export function getTmSymbolColor(x: number, nSymbols: number, maxSymbolColor = 140) {
-  return (x / (nSymbols - 1)) * maxSymbolColor
+export const tmSymbolColor = 64
+
+export function writeColor(imageData: ImageData, index: number, value: number) {
+  imageData.data[index++] = 135
+  imageData.data[index++] = 96
+  imageData.data[index++] = 102
+  imageData.data[index++] = value * 255
 }
 
 export function getTmStateColor(state: number) {

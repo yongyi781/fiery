@@ -33,7 +33,6 @@
     <Textarea
       id="code"
       class="h-full w-full font-mono text-sm"
-      rows={40}
       placeholder="Enter Turing machine rules here, one per line"
       autocomplete="on"
       spellcheck="false"

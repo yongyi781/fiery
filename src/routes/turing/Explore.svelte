@@ -7,9 +7,9 @@
   import StateSpan from "./StateSpan.svelte"
   import {
     getTmStateColor,
-    getTmSymbolColor,
     Tape,
     TuringMachine,
+    writeColor,
     type MacroTransition,
     type Transition,
     type TuringMachineInfo
@@ -156,9 +156,8 @@
           const color = getTmStateColor(m.tape.state)
           for (let k = 0; k < 4; ++k) imageData.data[index + k] = color[k]
         } else {
-          const color = getTmSymbolColor(m.tape.at(x), nSymbols)
-          for (let k = 0; k < 3; ++k) imageData.data[index + k] = color
-          imageData.data[index + 3] = 255
+          const a = m.tape.at(x) / (nSymbols - 1)
+          if (a !== 0) writeColor(imageData, index, a)
         }
       }
       if (!m.step()) break
@@ -194,7 +193,7 @@
         y1 = Math.min(height, Math.max(-1, y1))
         x2 = Math.min(width, Math.max(-1, x2))
         y2 = Math.min(height, Math.max(-1, y2))
-        ctx.strokeStyle = "rgb(192 220 255 / 0.2)"
+        ctx.strokeStyle = "rgb(192 220 255 / 0.8)"
         ctx.strokeRect(0, y1, canvas.width, y2 - y1)
         ctx.strokeStyle = "rgb(192 220 255 / 0.8)"
         ctx.strokeRect(x1, y1, x2 - x1, y2 - y1)

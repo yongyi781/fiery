@@ -2,9 +2,16 @@
   import { ModeWatcher } from "mode-watcher"
   import "../app.css"
   import Header from "./Header.svelte"
+  import { page } from "$app/stores"
 
   let { children } = $props()
+
+  const faviconPath = $page.url.pathname.startsWith("/turing") ? "/turing/favicon.png" : "/favicon.png"
 </script>
+
+<svelte:head>
+  <link rel="icon" href={faviconPath} />
+</svelte:head>
 
 <ModeWatcher />
 
