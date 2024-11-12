@@ -13,9 +13,9 @@ export const tmStateColors = [
 export const tmSymbolColor = 64
 
 export function writeColor(imageData: ImageData, index: number, value: number) {
-  imageData.data[index++] = 135
-  imageData.data[index++] = 96
-  imageData.data[index++] = 102
+  imageData.data[index++] = 158
+  imageData.data[index++] = 118
+  imageData.data[index++] = 124
   imageData.data[index++] = value * 255
 }
 

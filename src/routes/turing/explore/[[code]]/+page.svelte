@@ -37,7 +37,7 @@
     x: Number($page.url.searchParams.get("x")).valueOf() || 0
   })
   let animate = $state($page.url.searchParams.has("animate"))
-  let animateSpeed = $state(Number($page.url.searchParams.get("animateSpeed")).valueOf() || 4)
+  let animateSpeed = $state(Number($page.url.searchParams.get("animateSpeed")).valueOf() || 64)
   const debug = $page.url.searchParams.has("debug") || dev
 
   $effect(() => {

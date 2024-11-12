@@ -25,7 +25,6 @@
     debug = false
   }: Props = $props()
 
-  const maxSymbolColor = 192
   let canvas: HTMLCanvasElement
   let ctx: CanvasRenderingContext2D | null
   let imageData: ImageData
