@@ -18,6 +18,8 @@
     "4-bounce-counters",
     "4-cubic-bounce-counters",
     "4-fractals",
+    "4-tetration-counters",
+    "4-irregular-bells",
     "4-chaotic-counters",
     "4-spaghettis",
     "bb6-holdouts"
@@ -47,9 +49,6 @@
   </div>
   {#if rule.length <= 6}
     <!-- Don't calculate permutations with greater than 8 states -->
-    <div class="m-2 rounded-sm border bg-slate-100/50 p-4 dark:bg-slate-900/50">
-      <h1 class="text-3xl font-bold">Permutations</h1>
-      <Permutations {rule} />
-    </div>
+    <Permutations {rule} />
   {/if}
 </div>
