@@ -61,11 +61,16 @@
   })
 </script>
 
-<ul class="ml-6 list-disc">
-  {#each result as { perm, s }}
-    <li>
-      {perm} &bullet;
-      <a href="/turing/{s}" class="font-mono text-sm text-cyan-500 hover:underline" data-sveltekit-noscroll>{s}</a>
-    </li>
-  {/each}
-</ul>
+{#if result.length > 0}
+  <div class="m-2 rounded-sm border bg-slate-100/50 p-4 dark:bg-slate-900/50">
+    <h1 class="text-3xl font-bold">Permutations</h1>
+    <ul class="ml-6 list-disc">
+      {#each result as { perm, s }}
+        <li>
+          {perm} &bullet;
+          <a href="/turing/{s}" class="font-mono text-sm text-cyan-500 hover:underline" data-sveltekit-noscroll>{s}</a>
+        </li>
+      {/each}
+    </ul>
+  </div>
+{/if}
