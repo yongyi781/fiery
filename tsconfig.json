@@ -10,8 +10,18 @@
     "sourceMap": true,
     "strict": true,
     "moduleResolution": "bundler",
-    "types": ["@cloudflare/workers-types/2023-07-01"]
-  }
+    "types": [
+      "@cloudflare/workers-types/2023-07-01"
+    ]
+  },
+  "exclude": [
+    "node_modules",
+    ".svelte-kit",
+    "dist",
+    "build",
+    "public",
+    "wrangler.toml"
+  ],
   // Path aliases are handled by https://kit.svelte.dev/docs/configuration#alias
   // except $lib which is handled by https://kit.svelte.dev/docs/configuration#files
   //
