@@ -89,8 +89,7 @@
 
   const termsPerRow = 8
 
-  const defaultQuery = "1,1,2,5,14,42"
-  const initQuery = $state($page.url.searchParams.get("q") ?? defaultQuery)
+  const initQuery = $state($page.url.searchParams.get("q") ?? "")
   let queryInput: string = $state(initQuery)
   let query: string = $state(initQuery)
   let tried = $state(false)
@@ -205,7 +204,7 @@
   }
 
   async function load() {
-    query = queryInput = new URLSearchParams(window.location.search).get("q") ?? defaultQuery
+    query = queryInput = new URLSearchParams(window.location.search).get("q") ?? ""
     clearTable()
     await getOeis()
     selected = oeisEntries?.length > 0 ? oeisEntries[0] : undefined
