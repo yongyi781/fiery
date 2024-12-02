@@ -13,7 +13,7 @@
   <link rel="icon" href={faviconPath} />
 </svelte:head>
 
-<ModeWatcher />
+<ModeWatcher disableTransitions={false} />
 
 <div
   class="flex h-screen flex-col bg-gradient-to-r from-gray-50 via-background to-gray-50 dark:from-gray-950 dark:via-background dark:to-gray-950"
