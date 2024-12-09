@@ -1,10 +1,12 @@
 <script lang="ts">
   import { page } from "$app/stores"
+  import * as ContextMenu from "$lib/components/ui/context-menu/index.js"
   import * as Resizable from "$lib/components/ui/resizable"
   import { Textarea } from "$lib/components/ui/textarea"
-  import { LocalStore, localStore } from "$lib/local-store.svelte"
+  import { localStore } from "$lib/local-store.svelte"
+  import { Copy, Trash2 } from "lucide-svelte"
   import Overview from "../../Overview.svelte"
-  import { parseTMRule } from "../../turing"
+  import { parseTMRule, rulesEqual } from "../../turing"
 
   const { data } = $props()
 
@@ -36,6 +38,7 @@
       placeholder="Enter Turing machine rules here, one per line"
       autocomplete="on"
       spellcheck="false"
+      readonly={data.collection != null}
       bind:value={input.value}
     />
   </Resizable.Pane>
@@ -44,11 +47,34 @@
     <div class="absolute h-full w-full overflow-y-auto px-4 py-2">
       <ol class="flex flex-row flex-wrap gap-1">
         {#each validInputs as s, i (s)}
-          <li class="ml-4 text-center">
-            <a href="/turing/{s}">
-              <Overview machineInfo={{ rule: parseTMRule(s) }} width={size} height={size} {numSteps} {quality} />
-              <div class="bg-slate-200 dark:bg-slate-900">{i + 1}</div>
-            </a>
+          <li class="mx-1 text-center">
+            <ContextMenu.Root>
+              <ContextMenu.Trigger>
+                <a href="/turing/{s}">
+                  <Overview machineInfo={{ rule: parseTMRule(s) }} width={size} height={size} {numSteps} {quality} />
+                  <div class="bg-slate-200 dark:bg-slate-900">{i + 1}</div>
+                </a>
+              </ContextMenu.Trigger>
+              <ContextMenu.Content>
+                <ContextMenu.Item
+                  onclick={() => {
+                    navigator.clipboard.writeText(s).catch((err) => {
+                      console.error("Failed to copy: ", err)
+                    })
+                  }}><Copy size="16" class="mr-2" />Copy code</ContextMenu.Item
+                >
+                {#if data.collection == null}
+                  <ContextMenu.Item
+                    onclick={() => {
+                      input.value = input.value
+                        .split("\n")
+                        .filter((t) => !rulesEqual(parseTMRule(t), parseTMRule(s)))
+                        .join("\n")
+                    }}><Trash2 size="16" class="mr-2" /> Delete</ContextMenu.Item
+                  >
+                {/if}
+              </ContextMenu.Content>
+            </ContextMenu.Root>
           </li>
         {/each}
       </ol>
