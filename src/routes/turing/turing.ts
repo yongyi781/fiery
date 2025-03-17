@@ -5,14 +5,14 @@ export const tmStateColors = [
   [151, 231, 133, 255],
   [219, 165, 255, 255],
   [38, 236, 216, 255],
-  [195, 197, 79, 255],
-  [255, 255, 255, 255],
-  [255, 0, 0, 255] // Solid red for halt
+  [195, 197, 79, 255]
 ]
 
+export const tmHaltColor = [255, 0, 0, 255]
 export const tmSymbolColor = 64
 
 export function writeColor(imageData: ImageData, index: number, value: number) {
+  // a shade of reddish-color, alpha value tells you symbol.
   imageData.data[index++] = 158
   imageData.data[index++] = 118
   imageData.data[index++] = 124
@@ -20,10 +20,8 @@ export function writeColor(imageData: ImageData, index: number, value: number) {
 }
 
 export function getTmStateColor(state: number) {
-  if (state < 0 || state >= tmStateColors.length) {
-    return tmStateColors[tmStateColors.length - 1]
-  }
-  return tmStateColors[state]
+  if (state < 0 || state == 25) return tmHaltColor
+  return tmStateColors[state % tmStateColors.length]
 }
 
 export function getTmStateColorCss(state: number, mode: "light" | "dark" | undefined = "dark") {
