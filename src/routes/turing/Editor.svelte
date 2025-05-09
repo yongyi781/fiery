@@ -54,7 +54,7 @@
         /><input
           value={stateToString(tr.toState)}
           class="w-5 border border-blue-200 bg-transparent py-1 text-center outline-none dark:border-blue-800"
-          style="color: {getTmStateColorCss(tr.toState, $mode)};"
+          style="color: {getTmStateColorCss(tr.toState, mode.current)};"
           maxlength="1"
           autocomplete="off"
           spellcheck="false"

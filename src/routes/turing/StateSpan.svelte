@@ -9,4 +9,4 @@
   let { state }: Props = $props()
 </script>
 
-<span style="color: {getTmStateColorCss(state, $mode)}">{stateToString(state)}</span>
+<span style="color: {getTmStateColorCss(state, mode.current)}">{stateToString(state)}</span>
