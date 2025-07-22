@@ -20,7 +20,7 @@
   class={cn(
     "inline-block border-b-4 px-4 py-2 font-medium",
     className,
-    isActive ? "border-b-[--header-accent] text-[--header-accent]" : "border-b-transparent"
+    isActive ? "border-b-(--header-accent) text-(--header-accent)" : "border-b-transparent"
   )}
   {...props}
 >

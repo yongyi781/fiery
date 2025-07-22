@@ -32,7 +32,7 @@
     <ul class="ml-8 list-disc">
       <li><a href="/turing/skelets" class="text-cyan-500 hover:underline">The 43 Skelets</a></li>
       <li>
-        <a href="/turing/bb6random" class="text-cyan-500 hover:underline">Random BB(6) holdout</a> (as of 2025/1/31)
+        <a href="/turing/bb6random" class="text-cyan-500 hover:underline">Random BB(6) holdout</a> (as of July 2025)
       </li>
       <li><a href="/turing/batch" class="text-cyan-500 hover:underline">Batch Turing machine visualizer</a></li>
     </ul>

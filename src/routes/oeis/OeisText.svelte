@@ -78,7 +78,7 @@
 </script>
 
 {#snippet binom(items: any[])}
-  <span class="inline-flex items-center text-[--binomial]">
+  <span class="inline-flex items-center text-(--binomial)">
     <span class="text-xl font-thin">(</span>
     <span class="inline-flex flex-col items-center">
       <span class="text-xs">{items[0].trim()}</span>

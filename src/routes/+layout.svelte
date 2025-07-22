@@ -16,11 +16,11 @@
 <ModeWatcher disableTransitions={false} />
 
 <div
-  class="flex h-screen flex-col bg-gradient-to-r from-gray-50 via-background to-gray-50 dark:from-gray-950 dark:via-background dark:to-gray-950"
+  class="flex h-screen flex-col bg-linear-to-r from-gray-50 via-background to-gray-50 dark:from-gray-950 dark:via-background dark:to-gray-950"
 >
   <Header />
 
-  <main class="mx-auto flex w-full flex-1 flex-col bg-[--bg] p-4">
+  <main class="mx-auto flex w-full flex-1 flex-col bg-(--bg) p-4">
     {@render children()}
   </main>
 
