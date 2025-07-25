@@ -46,6 +46,7 @@
       transition: m.peek()
     }
   })
+  let visible = $state(false)
 
   function sampleTapes(start: number, end: number, n: number) {
     const res: Tape[] = []
@@ -166,27 +167,42 @@
     $effect(() => {
       m = new TuringMachine(machineInfo)
       untrack(() => {
-        renderImageData()
+        if (visible) renderImageData()
         renderCanvas()
       })
     })
 
     $effect(() => {
-      renderImageData()
+      if (visible) renderImageData()
       untrack(() => renderCanvas())
     })
 
     $effect(() => {
       renderCanvas()
     })
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          console.log("visible")
+          visible = true
+          observer.disconnect()
+        }
+      },
+      { rootMargin: "0px 0px 200px 0px" } // e.g. start loading a bit before it hits the viewport
+    )
+
+    observer.observe(canvas)
+
+    return () => observer.disconnect()
   })
 </script>
 
 <canvas
   id="canvas"
   class={cn(
-    "mx-auto select-none border",
-    analyzeMode ? "focus:outline focus:outline-2 focus:outline-blue-500" : "focus:outline-none"
+    "mx-auto border select-none",
+    analyzeMode ? "focus:outline-2 focus:outline-blue-500" : "focus:outline-none"
   )}
   {width}
   {height}
@@ -277,7 +293,7 @@
   </div>
 {/if}
 <div
-  class="pointer-events-none fixed text-nowrap rounded-md bg-slate-50 px-2 py-1 dark:bg-slate-900 {(!analyzeMode ||
+  class="pointer-events-none fixed rounded-md bg-slate-50 px-2 py-1 text-nowrap dark:bg-slate-900 {(!analyzeMode ||
     !interactive ||
     !mouseOver ||
     mouseOverInfo?.tape == null) &&

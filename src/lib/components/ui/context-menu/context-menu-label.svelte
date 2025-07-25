@@ -1,21 +1,24 @@
 <script lang="ts">
-	import { ContextMenu as ContextMenuPrimitive } from "bits-ui";
-	import { cn } from "$lib/utils.js";
+	import { cn, type WithElementRef } from "$lib/utils.js";
+	import type { HTMLAttributes } from "svelte/elements";
 
 	let {
 		ref = $bindable(null),
 		class: className,
 		inset,
+		children,
 		...restProps
-	}: ContextMenuPrimitive.GroupHeadingProps & {
+	}: WithElementRef<HTMLAttributes<HTMLDivElement>> & {
 		inset?: boolean;
 	} = $props();
 </script>
 
-<ContextMenuPrimitive.GroupHeading
-	bind:ref
-	data-slot="context-menu-group-heading"
+<div
+	bind:this={ref}
+	data-slot="context-menu-label"
 	data-inset={inset}
 	class={cn("text-foreground px-2 py-1.5 text-sm font-medium data-[inset]:pl-8", className)}
 	{...restProps}
-/>
+>
+	{@render children?.()}
+</div>

@@ -45,7 +45,6 @@
         <li><a href="/turing/batch/{key}" class="text-cyan-500 hover:underline">{key}</a></li>
       {/each}
     </ul>
-    <p>Note: bb6-holdouts will take about 20 seconds to load.</p>
   </div>
   {#if rule.length <= 6}
     <!-- Don't calculate permutations with greater than 8 states -->
