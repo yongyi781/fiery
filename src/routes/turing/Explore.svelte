@@ -2,7 +2,7 @@
   import TapeSpan from "./TapeSpan.svelte"
 
   import { cn } from "$lib/utils"
-  import { Check, Copy } from "lucide-svelte"
+  import { Check, Copy } from "@lucide/svelte"
   import { onMount, untrack } from "svelte"
   import StateSpan from "./StateSpan.svelte"
   import {
@@ -274,7 +274,7 @@
 <canvas
   id="explore-canvas"
   class={cn(
-    "mx-auto select-none border",
+    "mx-auto border select-none",
     analyzeMode ? "focus:outline focus:outline-2 focus:outline-green-500" : "focus:outline-none"
   )}
   {width}
@@ -470,7 +470,7 @@
   </div>
 {/if}
 <div
-  class="fixed bottom-0 left-0 right-0 text-nowrap rounded-md border bg-slate-200 px-2 py-1 font-mono text-xs dark:bg-slate-900 {analyzeMode
+  class="fixed right-0 bottom-0 left-0 rounded-md border bg-slate-200 px-2 py-1 font-mono text-xs text-nowrap dark:bg-slate-900 {analyzeMode
     ? ''
     : 'hidden'}"
   bind:this={statusBar}
@@ -517,6 +517,6 @@
     </div>
   {/if}
   {#if copied}
-    <div class="absolute bottom-1 right-1 flex items-center"><Copy /><Check color="green" /></div>
+    <div class="absolute right-1 bottom-1 flex items-center"><Copy /><Check color="green" /></div>
   {/if}
 </div>
